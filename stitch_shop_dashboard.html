@@ -1,0 +1,506 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Shop Owner Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e5e2e1",
+                        "on-surface-variant": "#5c3f41",
+                        "on-background": "#1c1b1b",
+                        "on-primary-fixed": "#40000d",
+                        "secondary-fixed-dim": "#97d1d0",
+                        "secondary-fixed": "#b3edec",
+                        "inverse-surface": "#313030",
+                        "on-secondary-fixed": "#002020",
+                        "outline-variant": "#e5bdbe",
+                        "on-secondary-fixed-variant": "#0d4f4f",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb955",
+                        "surface-container": "#f0eded",
+                        "tertiary-fixed": "#ffddb4",
+                        "primary-fixed": "#ffdada",
+                        "primary-fixed-dim": "#ffb2b6",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#ffb2b6",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "secondary": "#2d6767",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "on-tertiary-fixed": "#291800",
+                        "surface-tint": "#be0038",
+                        "surface-container-low": "#f6f3f2",
+                        "primary-container": "#e21e4a",
+                        "on-primary-fixed-variant": "#920029",
+                        "background": "#fcf9f8",
+                        "surface": "#fcf9f8",
+                        "on-surface": "#1c1b1b",
+                        "on-secondary-container": "#316b6b",
+                        "secondary-container": "#b0eaea",
+                        "surface-variant": "#e5e2e1",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dcd9d9",
+                        "on-primary-container": "#fffbff",
+                        "surface-container-high": "#eae7e7",
+                        "primary": "#ba0036",
+                        "on-tertiary-fixed-variant": "#633f00",
+                        "tertiary-container": "#a16900",
+                        "tertiary": "#805200",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#906f70"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "base": "4px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "8px",
+                        "xl": "32px",
+                        "sm": "12px",
+                        "container-margin": "20px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "price-display": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-bold": ["14px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "30px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "price-display": ["18px", { "lineHeight": "18px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f8;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-sm antialiased h-screen overflow-hidden flex">
+<!-- SideNavBar -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-surface dark:bg-inverse-surface border-r border-outline-variant shadow-sm z-50 flex flex-col p-md transition-all duration-200 ease-in-out hidden md:flex">
+<!-- Branding / Header -->
+<div class="mb-xl">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary mb-1">ProBarber Studio</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant">Premium Tier</p>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 flex flex-col gap-xs font-body-lg text-body-lg">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary rounded-lg font-label-bold transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined icon-filled group-hover:scale-110 transition-transform">grid_view</span>
+<span class="">Dashboard</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">event_available</span>
+<span class="">Bookings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">content_cut</span>
+<span class="">Services</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">photo_library</span>
+<span class="">Portfolio</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">chat</span>
+<span class="">Messages</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">payments</span>
+<span class="">Earnings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
+<span class="">Settings</span>
+</a>
+</nav>
+<!-- CTA -->
+<div class="mt-auto pt-lg border-t border-outline-variant">
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-label-bold text-label-bold hover:opacity-90 transition-opacity active:scale-95">
+                New Appointment
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden w-full md:ml-64 relative">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-16 px-lg w-full bg-surface dark:bg-inverse-surface border-b border-outline-variant shadow-sm docked top-0 sticky z-40">
+<!-- Product Name / Logo (Mobile only, hidden on desktop since sidebar has it, or keep it per JSON) -->
+<div class="flex items-center gap-sm">
+<span class="md:hidden font-headline-md text-headline-md font-black text-primary dark:text-inverse-primary cursor-pointer active:opacity-80">BarberPro</span>
+<span class="hidden md:inline font-headline-md text-headline-md font-black text-primary dark:text-inverse-primary cursor-pointer active:opacity-80">BarberPro</span>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors cursor-pointer active:opacity-80 mr-sm">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant cursor-pointer">
+<img alt="Barber Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a stylish male barbershop owner in his 30s. He is wearing a crisp black apron over a white t-shirt. The background is a blurred modern barbershop interior with warm lighting. The image is high-resolution, conveying trust and premium service." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFph-NrL7wSFDhAfkLLFDC5qj9n_bfXvlrR5HeUGRnzS2JXVsIB392XwwFRqc0f-pe1lUM-7Zz9Nr3mjLtsTQdHP_yVBpJ6XPStPcBiiaz5VkAY4qjsJoyThssOMer82kkTYDR_OhEXkioBjkZSmeqFXzc0rgMUQA4o3-KMYZ4KMTGev2hqYKKsYmT-agBtPV49XPaRkurdhXI87JCGyJsoyDfdgbYmjQjGswufnLdJXGrj3xpKis8IvSgQqX3PF3LtYRIDW9vMmFu">
+</div>
+</div>
+</header>
+<!-- Scrollable Dashboard Content -->
+<div class="flex-1 overflow-y-auto p-container-margin md:p-xl bg-surface-container-low">
+<div class="max-w-[1120px] mx-auto space-y-xl">
+<!-- Page Header -->
+<div>
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-1">Good morning, David</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Here is what's happening at Urban Grooming Hub today.</p>
+</div>
+<!-- SECTION 1: Stat Strip -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-md md:gap-lg">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-surface-variant shadow-[0px_6px_16px_rgba(0,0,0,0.03)] hover:shadow-[0px_6px_16px_rgba(0,0,0,0.08)] transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Today's Bookings</p>
+<span class="material-symbols-outlined text-primary bg-primary-fixed p-1 rounded-full text-[18px]">calendar_today</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-on-surface">24</p>
+<p class="font-body-sm text-body-sm text-secondary mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +12% from yesterday
+                        </p>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-surface-variant shadow-[0px_6px_16px_rgba(0,0,0,0.03)] hover:shadow-[0px_6px_16px_rgba(0,0,0,0.08)] transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Weekly Earnings</p>
+<span class="material-symbols-outlined text-tertiary bg-tertiary-fixed p-1 rounded-full text-[18px]">payments</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-on-surface">KES 85K</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Combined across all staff</p>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-surface-variant shadow-[0px_6px_16px_rgba(0,0,0,0.03)] hover:shadow-[0px_6px_16px_rgba(0,0,0,0.08)] transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Active Barbers</p>
+<span class="material-symbols-outlined text-secondary bg-secondary-fixed p-1 rounded-full text-[18px]">group</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-on-surface">8<span class="text-on-surface-variant text-headline-md">/10</span></p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">2 on leave today</p>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-surface-variant shadow-[0px_6px_16px_rgba(0,0,0,0.03)] hover:shadow-[0px_6px_16px_rgba(0,0,0,0.08)] transition-shadow">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Profile Completion</p>
+<span class="material-symbols-outlined text-on-surface bg-surface-variant p-1 rounded-full text-[18px]">storefront</span>
+</div>
+<p class="font-headline-lg text-headline-lg text-on-surface">95%</p>
+<div class="w-full bg-surface-variant rounded-full h-1.5 mt-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 95%"></div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: Barbers Overview (Bento-ish Grid) -->
+<section>
+<div class="flex justify-between items-end mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Barbers Overview</h3>
+<a class="font-label-bold text-label-bold text-primary hover:underline" href="#">View all</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Barber 1 -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden group">
+<div class="h-24 bg-surface-variant relative">
+<div class="w-full h-full bg-cover bg-center opacity-50" data-alt="A clean, minimalist pattern background featuring very subtle geometric shapes in light gray tones. This serves as a premium header background for a profile card in a modern web application." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAR0CvrxbLicM3ketktgbwwb2LYmLWftOhtXKQwms5HE092SWySitaTmuXo6sdINUHxqkO8enMdvQHkybKjE9DjReta9Q7T27CxHHBZsZCaUCCYhfl6oJAA8-K9he5YS4ww7xGgWGXO6hFr1Y8t1PLRNqU69CblxXgFYVTScTnHTg97joM0dS4ps1vZhkuEUy6eO23t8r7EE1scCT2DaaMtRgbkTbzFal7QJWd8GUOQ06Xb9a6yKEC8GlNB-vX1Fyxu81VnXUouXBBI')"></div>
+<div class="absolute -bottom-6 left-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-full border-4 border-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a young African male barber named Jabari. He has a neat fade haircut and a well-groomed beard. He is smiling confidently. The lighting is studio-quality, bright and flattering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxqV-Jz1psW2MdAOTGLBk85rmJYeXhmngJtmr-JOLfy5yFTN4UmsOy18UGH-f9SVya4wRvHVS_h65Ed7Z2XKz3KebkcgEUtozVp6xFnxGCU3G4ClbFnaluKgV2EFjhxN-EZuisfh8Z-cpKGb2S6LJ7n8sS0YrXXDpRCsLqadG8EXRQK89amw0ZxAXJdbO0iDrJyeUUgf_kj94KYvyDQQE4xmnJpmDj7kSyusddaya_NdSezVmV3z70obYBE6_5UicyFx4LhYWM6Rdx">
+</div>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-secondary border-2 border-surface-container-lowest rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="pt-8 p-md">
+<h4 class="font-label-bold text-label-bold text-on-surface text-[16px]">Jabari Omondi</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">Senior Barber</p>
+<div class="grid grid-cols-2 gap-2 mb-4 bg-surface-container p-2 rounded-lg">
+<div>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider">Today</p>
+<p class="font-label-bold text-label-bold">6 Bookings</p>
+</div>
+<div>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider">Week</p>
+<p class="font-label-bold text-label-bold">KES 14.5k</p>
+</div>
+</div>
+<button class="w-full py-2 border border-outline-variant text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-variant transition-colors">
+                                    View Profile
+                                </button>
+</div>
+</div>
+<!-- Barber 2 -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden group">
+<div class="h-24 bg-surface-variant relative">
+<div class="w-full h-full bg-cover bg-center opacity-50" data-alt="A clean, minimalist pattern background featuring very subtle geometric shapes in light gray tones. This serves as a premium header background for a profile card in a modern web application." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZCitTP18qq-_kx644WPfnjhByGUQu_bfWUljZOO3PnPMVxX5bW7i6TAbj9oRQSFSNVfeZL-e1i53VI3TLTRXTA0d5tu_0NrCKuCcIPZp9y3r7YnXTk9fbRkGxJ1UvJA2HK0kIrbkDPTSmSm6iY6zX8HUyrzS9hEDNDhejNoc828CCaZSfTajWlM-N0iyVfERm7LXv_iBXoXZ0d05o8OYtpOp_-tsgydii0PYRde-HXQSpSjxj0-7pKAiC7JWlEQcEI6DktRRjoTHk')"></div>
+<div class="absolute -bottom-6 left-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-full border-4 border-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of an experienced male barber in his 40s. He has short hair and a clean-shaven face. He wears a classic white barber smock. The background is a soft, out-of-focus shop interior. High quality, clear lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD96oQSwkI-wNTybsatWsEs-Aw7TVpLh0m-dbIUbWsbHNbUxdkwYkqC2k278e4BJny5b5lxjHsfoie3vT2aTfK3fKySl1ryPEBU7nMbFKJSF7vz3i-T_9kAffHJ9fjYqQf_KCR5FFfC5s01sTttRW66p93fRLnnLjnC4wKulO9uK99jGPqV839f9GBlr5agZSvya9MNP2DihRwV66WzsPc1HTd5n6yYVEBYn33gQgAkUbcf-G6hiGWT9c0K09fQSnMUA-Y4L5nEto0d">
+</div>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-secondary border-2 border-surface-container-lowest rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="pt-8 p-md">
+<h4 class="font-label-bold text-label-bold text-on-surface text-[16px]">Maina Kamau</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">Master Barber</p>
+<div class="grid grid-cols-2 gap-2 mb-4 bg-surface-container p-2 rounded-lg">
+<div>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider">Today</p>
+<p class="font-label-bold text-label-bold">8 Bookings</p>
+</div>
+<div>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider">Week</p>
+<p class="font-label-bold text-label-bold">KES 22.0k</p>
+</div>
+</div>
+<button class="w-full py-2 border border-outline-variant text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-variant transition-colors">
+                                    View Profile
+                                </button>
+</div>
+</div>
+<!-- Barber 3 -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden group">
+<div class="h-24 bg-surface-variant relative">
+<div class="w-full h-full bg-cover bg-center opacity-50" data-alt="A clean, minimalist pattern background featuring very subtle geometric shapes in light gray tones. This serves as a premium header background for a profile card in a modern web application." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDWkoN6Jwh-qvSnqIxEQZwqS_sUpMDbgWjbTkYerXrHKgX2rQ31NigXIr7DflT8xYPO3_iAZCPjCu8wwoOOEYUJkveL4jpWW-ZSlaXsVEvQbAeicaMWmH198LpgNiLPBpjxRXIW6hqWulVL2O-InkAv4dPLgLfSa_goceOkoa_GOdqZ0MPyMhs7ClieQJhHTTHnJESJak2PHsa2uaAnbP40lFhshBOmGX42360lL3-9ENxctdq1JkwH4sx6D66SAaq1Xbpt34qt165-')"></div>
+<div class="absolute -bottom-6 left-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-full border-4 border-surface-container-lowest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a female barber with stylish locs. She is smiling warmly at the camera, wearing a dark gray apron. The aesthetic is modern, bright, and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWpPqpnsWygsYl5v1mxMoHUUmRkjBl4H8xXYskTCDUnjTx-LOh7g14hH8yUjlThy5ihyuIl_EB9-BpqPweQxbcJBs0duIH2p6BY427j9Wh_jNLNxd5EaRtqaRHsOBIWfmJ08QaVxcE5_zd4Ur2sCBumGRYwI2vL7Az4VlwP0-8tg0dOrHnz1NxKVkPel_tnhVUbInu4hpW4t0aVNBB4_NETjidFQsymtkecGZEWVKmgQlNpWSgERFp8O3w0rQD_HqEe8aDmjmN-FcC">
+</div>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-error border-2 border-surface-container-lowest rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="pt-8 p-md">
+<h4 class="font-label-bold text-label-bold text-on-surface text-[16px]">Sarah Kimani</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-4">Color Specialist</p>
+<div class="grid grid-cols-2 gap-2 mb-4 bg-surface-container p-2 rounded-lg">
+<div>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider">Today</p>
+<p class="font-label-bold text-label-bold">0 Bookings</p>
+</div>
+<div>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider">Week</p>
+<p class="font-label-bold text-label-bold">KES 8.2k</p>
+</div>
+</div>
+<button class="w-full py-2 border border-outline-variant text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-variant transition-colors">
+                                    View Profile
+                                </button>
+</div>
+</div>
+<!-- Add Barber Card -->
+<div class="bg-surface-container border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center p-md min-h-[280px] cursor-pointer hover:bg-surface-variant transition-colors group">
+<div class="w-12 h-12 rounded-full bg-surface-container-lowest flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary">add</span>
+</div>
+<p class="font-label-bold text-label-bold text-on-surface">Add New Barber</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-center mt-1">Invite staff to manage their schedules.</p>
+</div>
+</div>
+</section><!-- SECTION 3: Combined Bookings Today -->
+<section class="space-y-md">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-sm">
+        <h3 class="font-headline-md text-headline-md text-on-surface">Combined Bookings Today</h3>
+        <div class="flex items-center gap-2">
+            <span class="text-body-sm text-on-surface-variant">Sort by:</span>
+            <div class="flex bg-surface-container rounded-lg p-1">
+                <button class="px-3 py-1 text-[12px] font-label-bold bg-surface-container-lowest rounded-md shadow-sm">Time</button>
+                <button class="px-3 py-1 text-[12px] font-label-bold text-on-surface-variant hover:text-on-surface">Barber</button>
+            </div>
+        </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low border-b border-surface-variant">
+                        <th class="p-md font-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Barber</th>
+                        <th class="p-md font-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Client</th>
+                        <th class="p-md font-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Service</th>
+                        <th class="p-md font-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Time</th>
+                        <th class="p-md font-label-bold text-on-surface-variant uppercase tracking-wider text-[11px]">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-surface-variant">
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-md flex items-center gap-3">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxqV-Jz1psW2MdAOTGLBk85rmJYeXhmngJtmr-JOLfy5yFTN4UmsOy18UGH-f9SVya4wRvHVS_h65Ed7Z2XKz3KebkcgEUtozVp6xFnxGCU3G4ClbFnaluKgV2EFjhxN-EZuisfh8Z-cpKGb2S6LJ7n8sS0YrXXDpRCsLqadG8EXRQK89amw0ZxAXJdbO0iDrJyeUUgf_kj94KYvyDQQE4xmnJpmDj7kSyusddaya_NdSezVmV3z70obYBE6_5UicyFx4LhYWM6Rdx" class="w-8 h-8 rounded-full object-cover" alt="Jabari">
+                            <span class="font-label-bold">Jabari Omondi</span>
+                        </td>
+                        <td class="p-md">David K.</td>
+                        <td class="p-md">Signature Fade</td>
+                        <td class="p-md">10:30 AM</td>
+                        <td class="p-md">
+                            <span class="px-2 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant text-[12px] font-label-bold">Confirmed</span>
+                        </td>
+                    </tr>
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-md flex items-center gap-3">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD96oQSwkI-wNTybsatWsEs-Aw7TVpLh0m-dbIUbWsbHNbUxdkwYkqC2k278e4BJny5b5lxjHsfoie3vT2aTfK3fKySl1ryPEBU7nMbFKJSF7vz3i-T_9kAffHJ9fjYqQf_KCR5FFfC5s01sTttRW66p93fRLnnLjnC4wKulO9uK99jGPqV839f9GBlr5agZSvya9MNP2DihRwV66WzsPc1HTd5n6yYVEBYn33gQgAkUbcf-G6hiGWT9c0K09fQSnMUA-Y4L5nEto0d" class="w-8 h-8 rounded-full object-cover" alt="Maina">
+                            <span class="font-label-bold">Maina Kamau</span>
+                        </td>
+                        <td class="p-md">Alice W.</td>
+                        <td class="p-md">Beard Trim</td>
+                        <td class="p-md">11:00 AM</td>
+                        <td class="p-md">
+                            <span class="px-2 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[12px] font-label-bold">Pending</span>
+                        </td>
+                    </tr>
+                    <!-- Row 3 -->
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-md flex items-center gap-3">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWpPqpnsWygsYl5v1mxMoHUUmRkjBl4H8xXYskTCDUnjTx-LOh7g14hH8yUjlThy5ihyuIl_EB9-BpqPweQxbcJBs0duIH2p6BY427j9Wh_jNLNxd5EaRtqaRHsOBIWfmJ08QaVxcE5_zd4Ur2sCBumGRYwI2vL7Az4VlwP0-8tg0dOrHnz1NxKVkPel_tnhVUbInu4hpW4t0aVNBB4_NETjidFQsymtkecGZEWVKmgQlNpWSgERFp8O3w0rQD_HqEe8aDmjmN-FcC" class="w-8 h-8 rounded-full object-cover" alt="Sarah">
+                            <span class="font-label-bold">Sarah Kimani</span>
+                        </td>
+                        <td class="p-md">John M.</td>
+                        <td class="p-md">Hair Coloring</td>
+                        <td class="p-md">1:30 PM</td>
+                        <td class="p-md">
+                            <span class="px-2 py-1 rounded-full bg-surface-variant text-on-surface-variant text-[12px] font-label-bold">Completed</span>
+                        </td>
+                    </tr>
+                    <!-- Row 4 -->
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-md flex items-center gap-3">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxqV-Jz1psW2MdAOTGLBk85rmJYeXhmngJtmr-JOLfy5yFTN4UmsOy18UGH-f9SVya4wRvHVS_h65Ed7Z2XKz3KebkcgEUtozVp6xFnxGCU3G4ClbFnaluKgV2EFjhxN-EZuisfh8Z-cpKGb2S6LJ7n8sS0YrXXDpRCsLqadG8EXRQK89amw0ZxAXJdbO0iDrJyeUUgf_kj94KYvyDQQE4xmnJpmDj7kSyusddaya_NdSezVmV3z70obYBE6_5UicyFx4LhYWM6Rdx" class="w-8 h-8 rounded-full object-cover" alt="Jabari">
+                            <span class="font-label-bold">Jabari Omondi</span>
+                        </td>
+                        <td class="p-md">Peter S.</td>
+                        <td class="p-md">Classic Cut</td>
+                        <td class="p-md">3:00 PM</td>
+                        <td class="p-md">
+                            <span class="px-2 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant text-[12px] font-label-bold">Confirmed</span>
+                        </td>
+                    </tr>
+                    <!-- Row 5 -->
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-md flex items-center gap-3">
+                            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD96oQSwkI-wNTybsatWsEs-Aw7TVpLh0m-dbIUbWsbHNbUxdkwYkqC2k278e4BJny5b5lxjHsfoie3vT2aTfK3fKySl1ryPEBU7nMbFKJSF7vz3i-T_9kAffHJ9fjYqQf_KCR5FFfC5s01sTttRW66p93fRLnnLjnC4wKulO9uK99jGPqV839f9GBlr5agZSvya9MNP2DihRwV66WzsPc1HTd5n6yYVEBYn33gQgAkUbcf-G6hiGWT9c0K09fQSnMUA-Y4L5nEto0d" class="w-8 h-8 rounded-full object-cover" alt="Maina">
+                            <span class="font-label-bold">Maina Kamau</span>
+                        </td>
+                        <td class="p-md">Lucy N.</td>
+                        <td class="p-md">Head Shave</td>
+                        <td class="p-md">4:30 PM</td>
+                        <td class="p-md">
+                            <span class="px-2 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[12px] font-label-bold">Pending</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 4: Staff Schedule Overview -->
+<section class="space-y-md">
+    <div class="flex justify-between items-end">
+        <h3 class="font-headline-md text-headline-md text-on-surface">Staff Schedule Overview</h3>
+        <div class="flex items-center gap-md">
+            <div class="flex items-center gap-1">
+                <div class="w-3 h-3 rounded-full bg-secondary-fixed"></div>
+                <span class="text-[12px] text-on-surface-variant">Jabari</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <div class="w-3 h-3 rounded-full bg-tertiary-fixed"></div>
+                <span class="text-[12px] text-on-surface-variant">Maina</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <div class="w-3 h-3 rounded-full bg-primary-fixed"></div>
+                <span class="text-[12px] text-on-surface-variant">Sarah</span>
+            </div>
+        </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl border border-surface-variant p-md shadow-sm">
+        <div class="grid grid-cols-8 gap-2 text-center mb-4">
+            <div class="col-span-1"></div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Mon 12</div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Tue 13</div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Wed 14</div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Thu 15</div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Fri 16</div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Sat 17</div>
+            <div class="text-[11px] font-label-bold text-on-surface-variant uppercase">Sun 18</div>
+        </div>
+        <div class="space-y-4">
+            <!-- Jabari Row -->
+            <div class="grid grid-cols-8 gap-2 items-center">
+                <div class="flex items-center gap-2">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxqV-Jz1psW2MdAOTGLBk85rmJYeXhmngJtmr-JOLfy5yFTN4UmsOy18UGH-f9SVya4wRvHVS_h65Ed7Z2XKz3KebkcgEUtozVp6xFnxGCU3G4ClbFnaluKgV2EFjhxN-EZuisfh8Z-cpKGb2S6LJ7n8sS0YrXXDpRCsLqadG8EXRQK89amw0ZxAXJdbO0iDrJyeUUgf_kj94KYvyDQQE4xmnJpmDj7kSyusddaya_NdSezVmV3z70obYBE6_5UicyFx4LhYWM6Rdx" class="w-6 h-6 rounded-full object-cover" alt="Jabari">
+                    <span class="text-[12px] font-label-bold">Jabari</span>
+                </div>
+                <div class="col-span-5 h-6 bg-secondary-fixed rounded-md opacity-60"></div>
+                <div class="col-span-2"></div>
+            </div>
+            <!-- Maina Row -->
+            <div class="grid grid-cols-8 gap-2 items-center">
+                <div class="flex items-center gap-2">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD96oQSwkI-wNTybsatWsEs-Aw7TVpLh0m-dbIUbWsbHNbUxdkwYkqC2k278e4BJny5b5lxjHsfoie3vT2aTfK3fKySl1ryPEBU7nMbFKJSF7vz3i-T_9kAffHJ9fjYqQf_KCR5FFfC5s01sTttRW66p93fRLnnLjnC4wKulO9uK99jGPqV839f9GBlr5agZSvya9MNP2DihRwV66WzsPc1HTd5n6yYVEBYn33gQgAkUbcf-G6hiGWT9c0K09fQSnMUA-Y4L5nEto0d" class="w-6 h-6 rounded-full object-cover" alt="Maina">
+                    <span class="text-[12px] font-label-bold">Maina</span>
+                </div>
+                <div class="col-span-1"></div>
+                <div class="col-span-6 h-6 bg-tertiary-fixed rounded-md opacity-60"></div>
+            </div>
+            <!-- Sarah Row -->
+            <div class="grid grid-cols-8 gap-2 items-center">
+                <div class="flex items-center gap-2">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWpPqpnsWygsYl5v1mxMoHUUmRkjBl4H8xXYskTCDUnjTx-LOh7g14hH8yUjlThy5ihyuIl_EB9-BpqPweQxbcJBs0duIH2p6BY427j9Wh_jNLNxd5EaRtqaRHsOBIWfmJ08QaVxcE5_zd4Ur2sCBumGRYwI2vL7Az4VlwP0-8tg0dOrHnz1NxKVkPel_tnhVUbInu4hpW4t0aVNBB4_NETjidFQsymtkecGZEWVKmgQlNpWSgERFp8O3w0rQD_HqEe8aDmjmN-FcC" class="w-6 h-6 rounded-full object-cover" alt="Sarah">
+                    <span class="text-[12px] font-label-bold">Sarah</span>
+                </div>
+                <div class="col-span-2"></div>
+                <div class="col-span-4 h-6 bg-primary-fixed rounded-md opacity-60"></div>
+                <div class="col-span-1"></div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+</div>
+</main>
+
+
+</body></html>

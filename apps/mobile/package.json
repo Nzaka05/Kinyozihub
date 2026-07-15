@@ -1,0 +1,16 @@
+{
+  "name": "@kinyozihub/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"TODO: npx create-expo-app scaffold happens here — kept out of this pass to avoid a heavy network install\"",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kinyozihub/types": "*",
+    "@kinyozihub/ui": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
