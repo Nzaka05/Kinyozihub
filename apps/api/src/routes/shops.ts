@@ -181,7 +181,14 @@ shopsRouter.get("/me/dashboard", async (req, res) => {
     res.json({
       success: true,
       data: {
-        shop,
+        shop: {
+          _id: shop._id,
+          name: shop.name,
+          location: shop.location,
+          areaName: shop.areaName,
+          subscriptionTier: shop.subscriptionTier,
+          inviteCode: shop.inviteCode
+        },
         barbersOverview,
         combinedBookings: todayBookings,
         stats: {
@@ -195,5 +202,114 @@ shopsRouter.get("/me/dashboard", async (req, res) => {
   } catch (error) {
     console.error("Error fetching shop dashboard:", error);
     res.status(500).json({ error: "Failed to fetch shop dashboard" });
+  }
+});
+
+shopsRouter.get("/me/bookings", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const { User } = require("../models/User");
+    const user = await User.findById(userId);
+
+    if (user?.role !== "shop_owner") {
+      return res.status(403).json({ error: "Forbidden: Not a shop owner" });
+    }
+
+    const { Shop } = require("../models/Shop");
+    const shop = await Shop.findOne({ ownerId: userId });
+    
+    if (!shop) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const { BarberProfile } = require("../models/BarberProfile");
+    const barberProfiles = await BarberProfile.find({ shopId: shop._id }).populate("user", "_id");
+    const barberUserIds = barberProfiles.map((bp: any) => bp.user._id);
+
+    const { Booking } = require("../models/Booking");
+    const bookings = await Booking.find({ barber: { $in: barberUserIds } })
+      .populate("client", "name profileImage phone")
+      .populate("barber", "name profileImage")
+      .sort({ date: 1, timeSlot: 1 })
+      .exec();
+
+    res.json({ success: true, data: bookings });
+  } catch (error) {
+    console.error("Error fetching shop bookings:", error);
+    res.status(500).json({ error: "Failed to fetch shop bookings" });
+  }
+});
+
+shopsRouter.post("/me/invite-code", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) {
+      return res.status(404).json({ error: "Shop not found" });
+    }
+
+    // Generate unique 8-char code, retry up to 3 times on collision
+    let newCode = '';
+    let success = false;
+    for (let i = 0; i < 3; i++) {
+      newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      try {
+        shop.inviteCode = newCode;
+        await shop.save();
+        success = true;
+        break; // Success!
+      } catch (err: any) {
+        if (err.code === 11000) { // Duplicate key error
+          continue; // Try again
+        }
+        throw err; // Other error, throw it
+      }
+    }
+
+    if (!success) {
+      return res.status(500).json({ success: false, message: "Failed to generate a unique invite code after multiple attempts. Please try again." });
+    }
+
+    return res.json({ success: true, inviteCode: newCode });
+  } catch (error) {
+    console.error("Error generating invite code:", error);
+    res.status(500).json({ error: "Failed to generate invite code" });
+  }
+});
+
+shopsRouter.put("/me/settings", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) {
+      return res.status(404).json({ error: "Shop not found" });
+    }
+
+    const { name, description, cancellationPolicy, bookingLeadTime, autoConfirmBookings, payoutMethod } = req.body;
+
+    if (name !== undefined) shop.name = name;
+    if (description !== undefined) shop.description = description;
+    if (cancellationPolicy !== undefined) shop.cancellationPolicy = cancellationPolicy;
+    if (bookingLeadTime !== undefined) shop.bookingLeadTime = bookingLeadTime;
+    if (autoConfirmBookings !== undefined) shop.autoConfirmBookings = autoConfirmBookings;
+    
+    // If payoutMethod changes, mark it as unverified
+    if (payoutMethod !== undefined && shop.payoutMethod !== payoutMethod) {
+      shop.payoutMethod = payoutMethod;
+      shop.payoutMethodVerified = false;
+    }
+
+    await shop.save();
+
+    return res.json({ success: true, data: shop });
+  } catch (error) {
+    console.error("Error updating shop settings:", error);
+    res.status(500).json({ error: "Failed to update shop settings" });
   }
 });

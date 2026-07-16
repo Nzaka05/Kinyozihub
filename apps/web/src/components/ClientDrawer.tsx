@@ -26,13 +26,13 @@ export default function ClientDrawer({ isOpen, onClose }: ClientDrawerProps) {
   const navItems = [
     { label: 'Home/Discover', path: '/client/dashboard', icon: 'explore', activeIconStyle: "'FILL' 1", enabled: true },
     { label: 'My Bookings', path: '/client/bookings', icon: 'calendar_month', activeIconStyle: "'FILL' 0", enabled: true },
-    { label: 'Messages', path: '#', icon: 'chat', enabled: false },
-    { label: 'Notifications', path: '#', icon: 'notifications', enabled: false },
+    { label: 'Messages', path: '/client/messages', icon: 'chat', activeIconStyle: "'FILL' 1", enabled: true },
+    { label: 'Notifications', path: '/client/notifications', icon: 'notifications', enabled: true },
     { label: 'My Referrals', path: '#', icon: 'group_add', enabled: false },
     { label: 'Favorite Barbers', path: '#', icon: 'content_cut', enabled: false },
     { label: 'Payment Methods', path: '#', icon: 'payments', enabled: false },
     { divider: true },
-    { label: 'Settings', path: '#', icon: 'settings', enabled: false },
+    { label: 'Settings', path: '/client/settings', icon: 'settings', enabled: true },
     { label: 'Help & Support', path: '#', icon: 'help', enabled: false },
     { label: 'Terms of Service', path: '#', icon: 'description', enabled: false },
   ];
@@ -50,7 +50,7 @@ export default function ClientDrawer({ isOpen, onClose }: ClientDrawerProps) {
         className={`fixed top-0 left-0 h-[100dvh] w-80 bg-white rounded-r-xl shadow-2xl z-50 flex flex-col py-6 overflow-y-auto transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Header: Profile Section */}
-        <div className="px-6 mb-8 flex flex-col items-start">
+        <Link href="/client/profile" onClick={onClose} className="px-6 mb-8 flex flex-col items-start block hover:opacity-80 transition-opacity">
           <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-primary/20 bg-gray-200">
             <img 
               className="w-full h-full object-cover" 
@@ -64,7 +64,7 @@ export default function ClientDrawer({ isOpen, onClose }: ClientDrawerProps) {
           <p className="text-base font-normal text-gray-500">
             {(user as any)?.email || 'Client Account'}
           </p>
-        </div>
+        </Link>
 
         {/* Navigation List */}
         <nav className="flex-1 flex flex-col">

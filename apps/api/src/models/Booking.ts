@@ -33,4 +33,11 @@ const bookingSchema = new Schema({
   timestamps: true
 });
 
+// Compound index to prevent double booking the same slot
+// We use a partial filter so cancelled bookings don't block new ones for the same slot
+bookingSchema.index(
+  { barber: 1, date: 1, timeSlot: 1 },
+  { unique: true, partialFilterExpression: { status: { $ne: BookingStatus.CANCELLED } } }
+);
+
 export const Booking = mongoose.model<BookingDocument>("Booking", bookingSchema);

@@ -21,6 +21,7 @@ interface Booking {
 interface BarberProfile {
   tier: 'free' | 'premium';
   commissionRate: number;
+  shopId?: string;
   shopName: string;
   profileImage: string;
   rating: number;
@@ -33,6 +34,12 @@ export default function BarberDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<BarberProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [inviteCode, setInviteCode] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+  const [joinError, setJoinError] = useState('');
+
+  const now = new Date();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
 
   const fetchData = async () => {
     try {
@@ -72,18 +79,77 @@ export default function BarberDashboard() {
     }
   };
 
+  const handleJoinShop = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteCode) return;
+    setIsJoining(true);
+    setJoinError('');
+    try {
+      const res = await api.post('/barbers/me/join-shop', { inviteCode });
+      if (res.data?.success) {
+        await fetchData();
+      } else {
+        setJoinError(res.data?.error || 'Failed to join shop');
+      }
+    } catch (err: any) {
+      setJoinError(err.response?.data?.error || err.response?.data?.message || err.message);
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
   if (loading || !user) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  const now = new Date();
+  if (profile && !profile.shopId) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center max-w-md mx-auto text-center px-4">
+        <div className="bg-primary/10 text-primary p-4 rounded-full mb-6">
+          <span className="material-symbols-outlined text-4xl">storefront</span>
+        </div>
+        <h2 className="text-3xl font-bold text-textPrimary mb-4">Join a Shop</h2>
+        <p className="text-gray-500 mb-8">
+          You are not currently linked to a barbershop. Enter the invite code provided by your shop owner to connect your profile and start receiving bookings.
+        </p>
+        
+        <form onSubmit={handleJoinShop} className="w-full space-y-4">
+          <div>
+            <input 
+              type="text" 
+              placeholder="e.g. A1B2C3D4" 
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono text-center uppercase tracking-widest text-lg"
+              maxLength={8}
+              required
+            />
+          </div>
+          {joinError && <p className="text-error text-sm">{joinError}</p>}
+          <button 
+            type="submit" 
+            disabled={isJoining || inviteCode.length < 6}
+            className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-all disabled:opacity-50"
+          >
+            {isJoining ? 'Joining...' : 'Join Shop'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // Helper to get local YYYY-MM-DD
+  const getLocalYMD = (dateObj: Date) => {
+    const tzOffset = dateObj.getTimezoneOffset() * 60000;
+    return new Date(dateObj.getTime() - tzOffset).toISOString().split('T')[0];
+  };
+
   const todaysBookings = bookings.filter(b => {
-    const d = new Date(b.date);
-    return d >= today && d < tomorrow;
+    return b.date && getLocalYMD(new Date(b.date)) === getLocalYMD(today);
   });
 
   const activeBookings = todaysBookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
@@ -96,82 +162,7 @@ export default function BarberDashboard() {
   const profileCompletion = profile?.portfolioImages?.length ? 100 : 80;
 
   return (
-    <div className="text-textPrimary bg-gray-50 min-h-screen">
-      {/* SideNavBar Anchor */}
-      <aside className="hidden lg:flex flex-col h-screen p-4 bg-white border-r border-border w-64 fixed left-0 top-0 shadow-sm z-50">
-        <div className="mb-8 px-4">
-          <h1 className="text-xl font-bold text-primary">ProBarber Studio</h1>
-          <p className="text-sm text-gray-500 capitalize">{profile?.tier || 'Free'} Tier</p>
-        </div>
-        <nav className="flex-1 space-y-1">
-          <Link href="/barber/dashboard" className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-lg font-semibold transition-all duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>grid_view</span>
-            <span>Dashboard</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">event_available</span>
-            <span>Bookings</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">content_cut</span>
-            <span>Services</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">photo_library</span>
-            <span>Portfolio</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">chat</span>
-            <span>Messages</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">payments</span>
-            <span>Earnings</span>
-          </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">settings</span>
-            <span>Settings</span>
-          </Link>
-        </nav>
-        {profile?.tier === 'free' && (
-          <div className="mt-auto p-4 bg-gray-50 rounded-xl border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="px-2 py-0.5 bg-textPrimary text-white text-[10px] font-bold rounded uppercase">Free Tier</span>
-            </div>
-            <p className="text-[12px] text-gray-500 mb-3">Unlock pro tools and lower commission rates.</p>
-            <Link href="#" className="text-[12px] font-bold text-primary hover:underline">Upgrade to Pro</Link>
-          </div>
-        )}
-      </aside>
-
-      {/* TopAppBar Anchor */}
-      <header className="flex justify-between items-center h-16 px-6 lg:ml-64 w-full lg:w-[calc(100%-16rem)] bg-white border-b border-border shadow-sm sticky top-0 z-40">
-        <div className="flex items-center gap-4">
-          <span className="text-xl font-black text-primary">KinyoziHub</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <div className="relative group cursor-pointer">
-            <span className="material-symbols-outlined text-gray-500 hover:text-primary transition-colors">notifications</span>
-            <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
-          </div>
-          <span className="material-symbols-outlined text-gray-500 hover:text-primary transition-colors cursor-pointer">help</span>
-          <div className="h-8 w-[1px] bg-border mx-2 hidden sm:block"></div>
-          <div className="flex items-center gap-3 cursor-pointer group">
-            <div className="text-right hidden sm:block">
-              <p className="font-semibold text-textPrimary leading-tight">{user.name}</p>
-              <p className="text-[11px] text-gray-500 capitalize">{profile?.tier === 'premium' ? 'Pro Barber' : 'Master Barber'}</p>
-            </div>
-            {profile?.profileImage ? (
-              <img className="w-10 h-10 rounded-full border-2 border-primary object-cover" alt="Profile" src={profile.profileImage} />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-primary bg-gray-200 flex items-center justify-center font-bold">{user.name.substring(0, 2).toUpperCase()}</div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Canvas */}
-      <main className="lg:ml-64 p-4 lg:p-6">
+    <>
         {/* Section 1: Overview Strip */}
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:grid-cols-5">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-border flex flex-col justify-between">
@@ -319,38 +310,56 @@ export default function BarberDashboard() {
               </div>
               <div className="grid grid-cols-7 gap-2 mb-6">
                 {[...Array(7)].map((_, i) => {
-                  const d = new Date(today.getTime() + (i - 2) * 24 * 60 * 60 * 1000); // just to simulate days around today
-                  const isToday = i === 2;
+                  const d = new Date(today.getTime() + i * 24 * 60 * 60 * 1000); 
+                  const isSelected = d.getTime() === selectedDate.getTime();
+                  const ymd = getLocalYMD(d);
+                  const hasBookings = bookings.some(b => b.date && getLocalYMD(new Date(b.date)) === ymd);
+                  
                   return (
-                    <div key={i} className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg cursor-pointer ${isToday ? 'bg-primary text-white shadow-sm' : 'hover:bg-gray-50 text-textPrimary'}`}>
+                    <div 
+                      key={i} 
+                      onClick={() => setSelectedDate(d)}
+                      className={`relative aspect-square flex items-center justify-center text-sm font-medium rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-primary text-white shadow-sm' : 'hover:bg-gray-50 text-textPrimary'}`}
+                    >
                       {d.getDate()}
+                      {hasBookings && (
+                        <div className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-secondary'}`}></div>
+                      )}
                     </div>
                   );
                 })}
               </div>
 
               {/* Daily Timeline */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-gray-500 w-14">11:00 AM</span>
-                  <div className="flex-1 h-8 rounded-lg bg-gray-50 border border-border"></div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-gray-500 w-14">12:00 PM</span>
-                  <div className="flex-1 h-8 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center px-3">
-                    <span className="text-[10px] font-bold text-secondary">Sarah A. - Confirmed</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-gray-500 w-14">01:00 PM</span>
-                  <div className="flex-1 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center px-3">
-                    <span className="text-[10px] font-bold text-primary">Break - Personal</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-gray-500 w-14">02:00 PM</span>
-                  <div className="flex-1 h-8 rounded-lg bg-gray-50 border border-border"></div>
-                </div>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                {['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM'].map((slot, i) => {
+                  // Find if there is a booking for this slot on the selected date
+                  const booking = bookings.find(b => {
+                    const ymd = getLocalYMD(selectedDate);
+                    return b.date && getLocalYMD(new Date(b.date)) === ymd && b.timeSlot === slot;
+                  });
+
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-[11px] text-gray-500 w-14 flex-shrink-0">{slot}</span>
+                      {booking ? (
+                        <div className={`flex-1 h-10 rounded-lg flex items-center justify-between px-3 ${
+                          booking.status === 'confirmed' ? 'bg-secondary/10 border border-secondary/20 text-secondary' :
+                          booking.status === 'pending' ? 'bg-orange-50 border border-orange-200 text-orange-600' :
+                          booking.status === 'cancelled' ? 'bg-red-50 border border-red-200 text-red-600' :
+                          'bg-gray-100 border border-gray-200 text-gray-600'
+                        }`}>
+                          <span className="text-[11px] font-bold truncate">
+                            {booking.client?.name || 'Guest'} - {booking.serviceName}
+                          </span>
+                          <span className="text-[10px] font-semibold uppercase opacity-80 ml-2 flex-shrink-0">{booking.status}</span>
+                        </div>
+                      ) : (
+                        <div className="flex-1 h-8 rounded-lg bg-gray-50 border border-border"></div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </section>
 
@@ -440,14 +449,6 @@ export default function BarberDashboard() {
           </section>
 
         </div>
-      </main>
-
-      {/* Global Contextual FAB */}
-      <button className="fixed bottom-6 right-6 bg-primary text-white shadow-lg w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50 group">
-        <span className="material-symbols-outlined text-[28px]">add</span>
-        <span className="absolute right-16 bg-textPrimary text-white px-3 py-1.5 rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm pointer-events-none">New Appointment</span>
-      </button>
-
-    </div>
+    </>
   );
 }

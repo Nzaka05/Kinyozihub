@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@kinyozihub/ui/src/button';
@@ -26,6 +27,19 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  const handleMessage = async (bookingId: string) => {
+    try {
+      const res = await api.post('/conversations/initiate', { bookingId });
+      if (res.data?.success) {
+        router.push(`/client/messages/${res.data.data._id}`);
+      }
+    } catch (error) {
+      console.error('Failed to initiate conversation:', error);
+      alert('Failed to start conversation. Please try again.');
+    }
+  };
 
   useEffect(() => {
     if (!authLoading) {
@@ -145,9 +159,18 @@ export default function ClientDashboard() {
                           <span className="text-[10px] text-primary mt-1">Cannot cancel within 2 hrs</span>
                         )}
                       </div>
-                      <Button variant="outline" size="sm" className="rounded-xl font-semibold">
-                        Reschedule
-                      </Button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleMessage(booking._id); }}
+                          className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">chat</span>
+                          Message
+                        </button>
+                        <Button variant="outline" size="sm" className="rounded-xl font-semibold">
+                          Reschedule
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );

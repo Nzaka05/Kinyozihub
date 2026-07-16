@@ -41,10 +41,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 0" }}>chat_bubble</span>
           <span className="font-semibold text-[10px] leading-none">Messages</span>
         </div>
-        <div className="flex flex-col items-center justify-center w-full h-full text-gray-300 cursor-not-allowed">
-          <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 0" }}>person</span>
+        <Link href="/client/settings" className={`flex flex-col items-center justify-center w-full h-full transition-colors active:scale-90 transition-transform duration-150 ${pathname === '/client/settings' ? 'text-primary' : 'text-gray-500 hover:bg-gray-50'}`}>
+          <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: pathname === '/client/settings' ? "'FILL' 1" : "'FILL' 0" }}>person</span>
           <span className="font-semibold text-[10px] leading-none">Profile</span>
-        </div>
+        </Link>
       </nav>
     </div>
   );

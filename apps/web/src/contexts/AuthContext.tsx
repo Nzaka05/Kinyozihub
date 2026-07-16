@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { api, setAccessToken } from '../lib/api';
 
 interface User {
+  _id: string;
   name: string;
   role: 'client' | 'barber' | 'shop_owner';
+  phone?: string;
 }
 
 interface AuthContextType {

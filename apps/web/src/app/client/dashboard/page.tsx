@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import ClientDrawer from '@/components/ClientDrawer';
@@ -111,12 +112,15 @@ export default function DiscoverPage() {
           <div className="p-8 text-center text-gray-500">No barbers found in your area.</div>
         ) : (
           barbers.map((barber) => (
-            <div key={barber._id} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm flex flex-col group cursor-pointer active:scale-[0.98] transition-transform">
+            <Link key={barber._id} href={`/client/shop/${barber.user?._id || barber._id}`} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm flex flex-col group cursor-pointer active:scale-[0.98] transition-transform">
               <div className="relative h-48 w-full">
                 <img 
                   className="w-full h-full object-cover" 
                   alt={barber.shopName} 
-                  src={barber.profileImage}
+                  src={barber.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(barber.shopName)}&background=random`}
+                  onError={(e) => {
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(barber.shopName)}&background=random`;
+                  }}
                 />
                 {barber.isSponsored && (
                   <div className="absolute top-3 right-3 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
@@ -149,7 +153,7 @@ export default function DiscoverPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </section>

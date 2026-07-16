@@ -15,9 +15,21 @@ export interface IBarberProfile extends Document {
   commissionRate: number;
   isSponsored: boolean;
   portfolioImages: string[];
+  bio?: string;
+  specialties: string[];
+  workingHours: any[];
+  payoutMethod?: string;
+  payoutMethodVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const workingHourSchema = new Schema({
+  dayOfWeek: { type: Number, required: true, min: 0, max: 6 },
+  isOpen: { type: Boolean, required: true, default: true },
+  openTime: { type: String, required: false },
+  closeTime: { type: String, required: false }
+}, { _id: false });
 
 const barberProfileSchema = new Schema<IBarberProfile>(
   {
@@ -34,7 +46,12 @@ const barberProfileSchema = new Schema<IBarberProfile>(
     tier: { type: String, enum: ['free', 'premium'], default: 'free' },
     commissionRate: { type: Number, default: 0.10 },
     isSponsored: { type: Boolean, default: false },
-    portfolioImages: [{ type: String }]
+    portfolioImages: [{ type: String }],
+    bio: { type: String, required: false },
+    specialties: { type: [String], default: [] },
+    workingHours: { type: [workingHourSchema], default: [] },
+    payoutMethod: { type: String, required: false },
+    payoutMethodVerified: { type: Boolean, default: false }
   },
   {
     timestamps: true,

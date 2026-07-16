@@ -19,7 +19,7 @@ bookingsRouter.get("/", async (req, res) => {
     let bookings;
     if (user?.role === "barber") {
       bookings = await Booking.find({ barber: userId })
-        .populate("client", "name profileImage")
+        .populate("client", "name profileImage phone")
         .sort({ date: 1 })
         .exec();
     } else {
@@ -156,6 +156,68 @@ bookingsRouter.post("/seed", async (req, res) => {
   }
 });
 
+bookingsRouter.post("/", async (req, res) => {
+  try {
+    // 2. Derive client from auth token, NOT request body
+    const clientId = req.user?.id;
+    if (!clientId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { barberId, serviceId, serviceName, price, date, timeSlot, notes } = req.body;
+
+    if (!barberId || !serviceId || !date || !timeSlot) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Parse the date and normalize to start of day for exact matching
+    const parsedDate = new Date(date);
+    const bookingDate = new Date(parsedDate.setHours(0, 0, 0, 0));
+
+    // 3. Add booking conflict check
+    // Query for an existing booking with the same barber + date + timeSlot that isn't cancelled
+    const conflict = await Booking.findOne({
+      barber: barberId,
+      date: bookingDate,
+      timeSlot: timeSlot,
+      status: { $ne: "cancelled" }
+    });
+
+    if (conflict) {
+      return res.status(409).json({ error: "This slot is no longer available" });
+    }
+
+    const newBooking = await Booking.create({
+      client: clientId, // Set from auth
+      barber: barberId,
+      serviceId,
+      serviceName,
+      price: price || 0,
+      date: bookingDate,
+      timeSlot,
+      notes,
+      status: "pending" // Default status
+    });
+
+    const { User } = require("../models/User");
+    const { Notification } = require("../models/Notification");
+    const clientUser = await User.findById(clientId);
+
+    await Notification.create({
+      userId: barberId,
+      type: "booking",
+      title: "New Booking Request",
+      message: `New booking request from ${clientUser?.name || "a client"} for ${serviceName}.`,
+      relatedId: newBooking._id
+    });
+
+    res.status(201).json({ success: true, data: newBooking });
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    res.status(500).json({ error: "Failed to create booking" });
+  }
+});
+
 bookingsRouter.patch("/:id/status", async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -180,8 +242,13 @@ bookingsRouter.patch("/:id/status", async (req, res) => {
       return res.status(404).json({ error: "Booking not found or not owned by you" });
     }
 
+    if (booking.status === status) {
+      // Idempotent return: already in the requested state
+      return res.json({ success: true, data: booking });
+    }
+
     if (booking.status !== "pending") {
-      return res.status(400).json({ error: "Only pending bookings can be accepted or declined" });
+      return res.status(400).json({ error: "Booking has already been processed" });
     }
 
     booking.status = status as any;
@@ -191,9 +258,53 @@ bookingsRouter.patch("/:id/status", async (req, res) => {
 
     await booking.save();
 
+    // Trigger Notification to Client
+    const { Notification } = require("../models/Notification");
+    const title = status === "confirmed" ? "Booking Confirmed" : "Booking Declined";
+    const actionWords = status === "confirmed" ? "confirmed" : "declined";
+    
+    await Notification.create({
+      userId: booking.client,
+      type: "booking",
+      title: title,
+      message: `${user.name || "Your barber"} has ${actionWords} your booking for ${booking.serviceName}.`,
+      relatedId: booking._id
+    });
+
     res.json({ success: true, data: booking });
   } catch (error) {
     console.error("Failed to update booking status:", error);
     res.status(500).json({ error: "Failed to update booking status" });
+  }
+});
+
+bookingsRouter.get("/:id", async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const bookingId = req.params.id;
+    
+    // We populate both client and barber since this endpoint might be called by either
+    const booking = await Booking.findById(bookingId)
+      .populate("client", "name profileImage")
+      .populate("barber", "name profileImage rating totalReviews");
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    // Verify ownership
+    const clientId = (booking.client as any)?._id?.toString() || booking.client?.toString();
+    const barberId = (booking.barber as any)?._id?.toString() || booking.barber?.toString();
+
+    if (clientId !== userId && barberId !== userId) {
+      return res.status(403).json({ error: "Forbidden: You do not have access to this booking" });
+    }
+
+    res.json({ success: true, data: booking });
+  } catch (error) {
+    console.error("Failed to fetch booking:", error);
+    res.status(500).json({ error: "Failed to fetch booking" });
   }
 });

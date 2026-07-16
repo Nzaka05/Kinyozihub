@@ -12,6 +12,14 @@ export interface IShop extends Document {
   barbers: mongoose.Types.ObjectId[];
   subscriptionTier: string;
   subscriptionExpiry?: Date;
+  inviteCode?: string;
+  description?: string;
+  logo?: string;
+  cancellationPolicy: string;
+  bookingLeadTime: string;
+  autoConfirmBookings: boolean;
+  payoutMethod?: string;
+  payoutMethodVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +36,14 @@ const shopSchema = new Schema<IShop>(
     barbers: [{ type: Schema.Types.ObjectId, ref: 'BarberProfile' }],
     subscriptionTier: { type: String, enum: Object.values(SubscriptionTier), default: SubscriptionTier.FREE },
     subscriptionExpiry: { type: Date },
+    inviteCode: { type: String, unique: true, sparse: true },
+    description: { type: String, required: false },
+    logo: { type: String, required: false },
+    cancellationPolicy: { type: String, enum: ["Flexible", "Moderate", "Strict"], default: "Flexible" },
+    bookingLeadTime: { type: String, default: "2 hours" },
+    autoConfirmBookings: { type: Boolean, default: false },
+    payoutMethod: { type: String, required: false },
+    payoutMethodVerified: { type: Boolean, default: false },
   },
   {
     timestamps: true,

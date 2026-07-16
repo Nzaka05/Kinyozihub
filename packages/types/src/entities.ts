@@ -16,6 +16,15 @@ export interface User {
   profileImage?: string;
   isVerified: boolean; // phone OTP verified
   authProviders: AuthProvider[];
+  preferences: {
+    bookingUpdates: boolean;
+    messages: boolean;
+    promotionalOffers: boolean;
+    emailNotifications: boolean;
+    smsPushNotifications: boolean;
+    language: string;
+    theme: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -37,8 +46,11 @@ export interface GeoPoint {
   coordinates: [number, number]; // [lng, lat]
 }
 
-export interface WorkingHours {
-  [day: string]: { open: string; close: string } | null; // null = closed that day
+export interface WorkingHour {
+  dayOfWeek: number; // 0-6 (0=Sunday)
+  isOpen: boolean;
+  openTime?: string; // e.g. "09:00"
+  closeTime?: string; // e.g. "17:00"
 }
 
 export interface BarberProfile {
@@ -48,7 +60,7 @@ export interface BarberProfile {
   tagline?: string;
   location: GeoPoint;
   areaName: string;
-  workingHours: WorkingHours;
+  workingHours: WorkingHour[];
   portfolioImages: string[];
   specialties: string[];
   experienceYears?: number;
@@ -61,6 +73,8 @@ export interface BarberProfile {
   sponsoredUntil?: string;
   shopId?: string; // ref Shops — present if this barber is shop staff
   bookingLink: string; // slug
+  payoutMethod?: string;
+  payoutMethodVerified: boolean;
 }
 
 // PRD §8.3
@@ -126,4 +140,11 @@ export interface Shop {
   barbers: string[]; // BarberProfile IDs — staff only, see UserRole note
   subscriptionTier: SubscriptionTier.SHOP;
   subscriptionExpiry?: string;
+  description?: string;
+  logo?: string;
+  cancellationPolicy: string;
+  bookingLeadTime: string;
+  autoConfirmBookings: boolean;
+  payoutMethod?: string;
+  payoutMethodVerified: boolean;
 }

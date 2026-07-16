@@ -30,25 +30,24 @@ export function GoogleSignInButton() {
     try {
       const { data } = await api.post('/auth/google', { idToken });
 
-      if (data.isNewUser) {
-        // New user: backend returned a googleRegistrationToken.
-        // Store it and send user through phone verification → role selection.
-        sessionStorage.setItem('googleRegistrationToken', data.googleRegistrationToken);
-        router.push('/register');
-      } else {
-        // Existing user: backend returned accessToken + user.
-        login(data.accessToken, data.user);
+      // Backend now returns accessToken + user for all successful sign-ins
+      login(data.accessToken, data.user);
 
-        const role = data.user.role;
-        if (role === 'client') {
-          router.push('/client/dashboard');
-        } else if (role === 'barber') {
-          router.push('/barber/dashboard');
-        } else if (role === 'shop_owner') {
-          router.push('/shop/dashboard');
-        } else {
-          router.push('/login');
-        }
+      if (data.user.phone?.startsWith('google_')) {
+        // New user or user hasn't provided a real phone number yet
+        router.push('/onboarding/profile');
+        return;
+      }
+
+      const role = data.user.role;
+      if (role === 'client') {
+        router.push('/client/dashboard');
+      } else if (role === 'barber') {
+        router.push('/barber/dashboard');
+      } else if (role === 'shop_owner') {
+        router.push('/shop/dashboard');
+      } else {
+        router.push('/login');
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Google sign-in failed. Please try again.');

@@ -10,18 +10,22 @@ export interface RoleCardProps {
   name: string;
   selected?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick?: () => void;
 }
 
-export function RoleCard({ value, title, description, icon, name, selected, onChange }: RoleCardProps) {
+export function RoleCard({ value, title, description, icon, name, selected, onChange, onClick }: RoleCardProps) {
   return (
     <label 
+      htmlFor={`${name}-${value}`}
       className={`relative flex p-4 rounded-card border cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.98] ${
         selected 
           ? "border-primary bg-primary/5" 
           : "border-border bg-white"
       }`}
+      onClick={onClick}
     >
       <input 
+        id={`${name}-${value}`}
         type="radio" 
         name={name} 
         value={value} 

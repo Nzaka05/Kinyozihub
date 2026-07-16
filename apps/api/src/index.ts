@@ -30,11 +30,15 @@ app.use(cookieParser());
 import { bookingsRouter } from "./routes/bookings";
 import { barbersRouter } from "./routes/barbers";
 import { shopsRouter } from "./routes/shops";
+import { notificationsRouter } from "./routes/notifications";
+import { conversationsRouter } from "./routes/conversations";
 
 app.use("/api/auth", authRouter);
 app.use("/api/bookings", bookingsRouter);
 app.use("/api/barbers", barbersRouter);
 app.use("/api/shops", shopsRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/conversations", conversationsRouter);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
