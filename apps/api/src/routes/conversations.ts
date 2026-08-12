@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import { requireAuth } from "../middlewares/requireAuth";
 import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
@@ -263,7 +264,7 @@ conversationsRouter.post("/:id/read", async (req, res) => {
     }
 
     // Update conversation-level read tracking
-    const readByIds = (conversation.lastMessageReadBy || []).map((id) =>
+    const readByIds = (conversation.lastMessageReadBy || []).map((id: mongoose.Types.ObjectId) =>
       id.toString()
     );
     if (!readByIds.includes(userId)) {

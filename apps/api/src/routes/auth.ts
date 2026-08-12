@@ -156,7 +156,7 @@ authRouter.post("/complete-onboarding", async (req, res) => {
     if (phoneProviderIndex >= 0) {
       user.authProviders[phoneProviderIndex].providerId = phone;
     } else {
-      user.authProviders.push({ provider: "phone", providerId: phone });
+      user.authProviders.push({ provider: "phone", providerId: phone, verifiedAt: new Date().toISOString() });
     }
 
     await user.save();

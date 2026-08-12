@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { BarberProfile } from '../models/BarberProfile';
 import { User } from '../models/User';
 import { Service } from '../models/Service';
@@ -95,7 +96,7 @@ router.post('/seed', requireAuth, async (req, res) => {
         const alreadyInList = barberUsers.some(bu => bu._id.toString() === currentUserId);
         if (!alreadyInList) {
           profilesToInsert.push({
-            user: currentUserId,
+            user: new mongoose.Types.ObjectId(currentUserId),
             shopName: `${currentUser.name}'s Barbershop`,
             isVerified: true,
             rating: 4.7,
