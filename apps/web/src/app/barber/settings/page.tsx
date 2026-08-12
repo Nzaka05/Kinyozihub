@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
+import ServiceManager from "@/components/ServiceManager";
+import BlockTimeModal from "@/components/BlockTimeModal";
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -20,6 +22,31 @@ export default function BarberSettingsPage() {
     payoutMethod: '',
     workingHours: DAYS_OF_WEEK.map((_, i) => ({ dayOfWeek: i, isOpen: true, openTime: '09:00', closeTime: '18:00' }))
   });
+
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [blockedTimes, setBlockedTimes] = useState<any[]>([]);
+
+  const fetchBlockedTimes = async () => {
+    try {
+      const { data } = await api.get("/blocked-time/mine");
+      setBlockedTimes(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteBlock = async (id: string) => {
+    try {
+      await api.delete(`/blocked-time/${id}`);
+      fetchBlockedTimes();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBlockedTimes();
+  }, []);
 
   const loadProfile = async () => {
     try {
@@ -182,6 +209,9 @@ export default function BarberSettingsPage() {
               </div>
             </section>
 
+            {/* SERVICES */}
+            <ServiceManager />
+
             {/* WORKING HOURS */}
             <section className="bg-white border border-border rounded-xl shadow-sm p-8">
               <div className="flex items-center gap-2 mb-6">
@@ -225,8 +255,49 @@ export default function BarberSettingsPage() {
             </section>
           </div>
 
+          {/* BLOCKED TIME */}
+          <section className="bg-white border border-border rounded-xl shadow-sm p-8 mt-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">event_busy</span>
+                <h3 className="text-xl font-semibold">Blocked Time</h3>
+              </div>
+              <button 
+                onClick={() => setIsBlockModalOpen(true)}
+                className="px-4 py-2 bg-primary text-white font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined">add</span>
+                Block Time
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {blockedTimes.length === 0 ? (
+                <p className="text-gray-500 text-sm">No blocked times currently scheduled.</p>
+              ) : (
+                blockedTimes.map((block) => (
+                  <div key={block._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-border">
+                    <div>
+                      <p className="font-semibold text-textPrimary">
+                        {block.isRecurring ? `Every ${new Date(block.date).toLocaleDateString("en-US", { weekday: "long" })}` : new Date(block.date).toLocaleDateString()}
+                      </p>
+                      <p className="text-sm text-gray-600">{block.startTime} - {block.endTime} • {block.reason}</p>
+                    </div>
+                    <button 
+                      onClick={() => deleteBlock(block._id)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove Block"
+                    >
+                      <span className="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
           {/* Column Right: Billing & Shop Association */}
-          <div className="md:col-span-5 flex flex-col gap-6">
+          <div className="md:col-span-5 flex flex-col gap-6 mt-6 md:mt-0">
             
             {/* BILLING & PAYOUTS */}
             <section className="bg-white border border-border rounded-xl shadow-sm p-8">
@@ -354,6 +425,11 @@ export default function BarberSettingsPage() {
         <span className="material-symbols-outlined text-white">error</span>
         <p className="font-semibold">Failed to save changes, please try again.</p>
       </div>
+      <BlockTimeModal 
+        isOpen={isBlockModalOpen} 
+        onClose={() => setIsBlockModalOpen(false)} 
+        onSuccess={fetchBlockedTimes} 
+      />
     </div>
   );
 }

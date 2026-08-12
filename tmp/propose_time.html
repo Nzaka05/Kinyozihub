@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "surface": "#fcf9f8",
+                    "outline": "#906f70",
+                    "on-error": "#ffffff",
+                    "inverse-on-surface": "#f3f0ef",
+                    "tertiary-fixed-dim": "#ffb955",
+                    "surface-bright": "#fcf9f8",
+                    "surface-container": "#f0eded",
+                    "inverse-primary": "#ffb2b6",
+                    "tertiary-fixed": "#ffddb4",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#313030",
+                    "on-tertiary-fixed": "#291800",
+                    "primary-fixed-dim": "#ffb2b6",
+                    "on-surface-variant": "#5c3f41",
+                    "outline-variant": "#e5bdbe",
+                    "tertiary": "#805200",
+                    "on-primary-fixed-variant": "#920029",
+                    "tertiary-container": "#a16900",
+                    "surface-tint": "#be0038",
+                    "secondary-container": "#b0eaea",
+                    "primary-fixed": "#ffdada",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#e5e2e1",
+                    "secondary-fixed": "#b3edec",
+                    "on-tertiary-fixed-variant": "#633f00",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#002020",
+                    "background": "#fcf9f8",
+                    "surface-container-high": "#eae7e7",
+                    "primary-container": "#e21e4a",
+                    "on-primary-fixed": "#40000d",
+                    "on-background": "#1c1b1b",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#dcd9d9",
+                    "on-surface": "#1c1b1b",
+                    "primary": "#ba0036",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-container-low": "#f6f3f2",
+                    "secondary-fixed-dim": "#97d1d0",
+                    "secondary": "#2d6767",
+                    "on-secondary-fixed-variant": "#0d4f4f",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#fffbff",
+                    "on-secondary-container": "#316b6b",
+                    "on-tertiary": "#ffffff",
+                    "brand-coral": "#ff385c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "md": "16px",
+                    "container-margin": "20px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "sm": "12px",
+                    "xs": "8px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "price-display": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-bold": ["Inter"]
+            },
+            "fontSize": {
+                    "price-display": ["18px", {"lineHeight": "18px", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "30px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-bold": ["14px", {"lineHeight": "16px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-lg min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim w-full top-0 sticky z-50 border-b border-outline-variant dark:border-outline">
+<div class="flex justify-between items-center px-container-margin py-md w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-md">
+<button class="hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors active:scale-95 duration-150 p-base rounded-full">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Propose a New Time</h1>
+</div>
+<button class="hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors active:scale-95 duration-150 p-base rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-outline">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-container-margin pt-md space-y-lg">
+<!-- Pinned Original Request Card -->
+<section>
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-[0px_6px_16px_rgba(0,0,0,0.08)]">
+<div class="flex items-center gap-md mb-sm">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a young man named David K. with a clean, modern hairstyle, looking friendly and approachable. The lighting is soft and high-key, set against a minimalist light gray background that complements the professional and trustworthy aesthetic of a high-end service platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvYZBDw7b6DFided6i7QPMtAJmJZ4svgswoDuDYKLL38fQVkFt-okWg0LfiQgHl_ptOoDFGrCsuFI06cI1mmKTGME6vzD5V5lVA0dcduZHzOYC_zIChhi1kHuqq2FXLCXLeOz-wNABkKZo18SGWmzhq-qdHw5Cf0n48Pix98ceWjXuNMX7cegRO94MT5v_u6MvGkXeJ786NCIGBgvIVdmMadyu5a-S963BLC1MzH2n3RNlG63f6fRpWAxcMm32Rdsq8pzI19CcGgfl"/>
+</div>
+<div>
+<h3 class="font-label-bold text-label-bold text-on-surface">David K.</h3>
+<p class="text-body-sm text-on-surface-variant">Signature Fade</p>
+</div>
+<div class="ml-auto bg-surface-container-low px-sm py-xs rounded-full">
+<span class="text-body-sm text-on-surface-variant line-through">June 15, 10:30 AM</span>
+</div>
+</div>
+<div class="flex items-center gap-xs text-error">
+<span class="material-symbols-outlined text-[18px]">event_busy</span>
+<span class="text-body-sm font-semibold">Original request</span>
+</div>
+</div>
+</section>
+<!-- Date Selection Strip -->
+<section class="space-y-sm">
+<h2 class="font-label-bold text-label-bold text-on-surface px-base">Select New Date</h2>
+<div class="flex overflow-x-auto gap-sm hide-scrollbar py-base px-base">
+<!-- Date Items -->
+<button class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all active:scale-95">
+<span class="text-body-sm text-on-surface-variant">Mon</span>
+<span class="font-label-bold text-headline-md">14</span>
+</button>
+<button class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-xl border-2 border-brand-coral bg-brand-coral/5 transition-all active:scale-95 shadow-sm">
+<span class="text-body-sm text-brand-coral font-bold">Tue</span>
+<span class="font-label-bold text-headline-md text-brand-coral">15</span>
+</button>
+<button class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all active:scale-95">
+<span class="text-body-sm text-on-surface-variant">Wed</span>
+<span class="font-label-bold text-headline-md">16</span>
+</button>
+<button class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all active:scale-95">
+<span class="text-body-sm text-on-surface-variant">Thu</span>
+<span class="font-label-bold text-headline-md">17</span>
+</button>
+<button class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all active:scale-95">
+<span class="text-body-sm text-on-surface-variant">Fri</span>
+<span class="font-label-bold text-headline-md">18</span>
+</button>
+<button class="flex-shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all active:scale-95">
+<span class="text-body-sm text-on-surface-variant">Sat</span>
+<span class="font-label-bold text-headline-md">19</span>
+</button>
+</div>
+</section>
+<!-- Time Slot Grid -->
+<section class="space-y-sm">
+<h2 class="font-label-bold text-label-bold text-on-surface px-base">Select New Time</h2>
+<div class="grid grid-cols-3 gap-sm px-base">
+<button class="time-slot border border-outline-variant py-sm rounded-xl text-body-sm font-semibold hover:bg-surface-container-low transition-colors text-center active:scale-95" onclick="toggleTime(this)">09:00 AM</button>
+<button class="time-slot border border-outline-variant py-sm rounded-xl text-body-sm font-semibold hover:bg-surface-container-low transition-colors text-center active:scale-95" onclick="toggleTime(this)">09:30 AM</button>
+<button class="time-slot border border-outline-variant py-sm rounded-xl text-body-sm font-semibold hover:bg-surface-container-low transition-colors text-center active:scale-95" onclick="toggleTime(this)">11:00 AM</button>
+<button class="time-slot border border-outline-variant py-sm rounded-xl text-body-sm font-semibold hover:bg-surface-container-low transition-colors text-center active:scale-95" onclick="toggleTime(this)">12:30 PM</button>
+<button class="time-slot border border-outline-variant py-sm rounded-xl text-body-sm font-semibold hover:bg-surface-container-low transition-colors text-center active:scale-95" onclick="toggleTime(this)">02:00 PM</button>
+<button class="time-slot border border-outline-variant py-sm rounded-xl text-body-sm font-semibold hover:bg-surface-container-low transition-colors text-center active:scale-95" onclick="toggleTime(this)">03:30 PM</button>
+</div>
+</section>
+<!-- Optional Message -->
+<section class="space-y-xs">
+<label class="font-label-bold text-label-bold text-on-surface px-base">Optional Message</label>
+<div class="px-base">
+<textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-md text-body-lg focus:ring-2 focus:ring-brand-coral focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" placeholder="Add a note for David K." rows="3">Sorry, I'm running behind — does this work instead?</textarea>
+</div>
+</section>
+<!-- Primary CTA Area -->
+<section class="px-base pt-md space-y-md">
+<button class="w-full bg-brand-coral disabled:opacity-50 disabled:cursor-not-allowed text-white py-md rounded-xl font-label-bold text-lg shadow-[0px_10px_20px_rgba(255,56,92,0.12)] active:scale-95 transition-all" disabled="" id="send-proposal">
+                Send Proposal
+            </button>
+<p class="text-body-sm text-center text-on-surface-variant px-lg">
+                David K. will be notified and can accept or suggest another time
+            </p>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 border-t border-outline-variant dark:border-outline bg-surface dark:bg-surface-dim shadow-lg">
+<div class="flex justify-around items-center h-16 pb-safe w-full">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors active:scale-90 duration-200 w-full h-full" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-bold text-label-bold">Discover</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors active:scale-90 duration-200 w-full h-full" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-bold text-label-bold">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors active:scale-90 duration-200 w-full h-full" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-bold text-label-bold">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors active:scale-90 duration-200 w-full h-full" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-bold text-label-bold">Profile</span>
+</a>
+</div>
+</nav>
+<script>
+        function toggleTime(el) {
+            // Remove selection from all slots
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('bg-brand-coral', 'text-white', 'border-brand-coral');
+                slot.classList.add('border-outline-variant');
+            });
+            
+            // Add selection to clicked slot
+            el.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
+            el.classList.remove('border-outline-variant');
+
+            // Enable primary button
+            document.getElementById('send-proposal').removeAttribute('disabled');
+        }
+    </script>
+</body></html>

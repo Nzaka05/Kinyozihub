@@ -35,33 +35,41 @@ export default function ShopDetailPage() {
   const [error, setError] = useState('');
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
-
-  // TODO: This needs to become a real Service model tied to BarberProfile/Shop before production.
-  // Hardcoded for now to unblock the booking flow.
-  const services = [
-    { id: 'srv_1', name: 'Signature Fade', price: 1500, duration: '45 min' },
-    { id: 'srv_2', name: 'Beard Trim', price: 800, duration: '30 min' },
-    { id: 'srv_3', name: 'Classic Cut', price: 1200, duration: '40 min' },
-    { id: 'srv_4', name: 'Hair Dye', price: 2500, duration: '60 min' },
-  ];
+  const [services, setServices] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndServices = async () => {
       try {
-        const response = await api.get(`/barbers/${params.id}`);
-        if (response.data.success) {
-          setProfile(response.data.data);
+        const [profileRes, servicesRes, reviewsRes] = await Promise.all([
+          api.get(`/barbers/${params.id}`),
+          api.get(`/barbers/${params.id}/services`),
+          api.get(`/barbers/${params.id}/reviews?limit=5`)
+        ]);
+
+        if (profileRes.data.success) {
+          setProfile(profileRes.data.data);
         } else {
-          setError(response.data.message);
+          setError(profileRes.data.message);
+        }
+
+        if (servicesRes.data.success) {
+          setServices(servicesRes.data.data);
+        }
+        
+        if (reviewsRes.data?.success) {
+          setReviews(reviewsRes.data.data);
         }
       } catch (err: any) {
         setError(err.response?.data?.message || err.message);
       } finally {
         setLoading(false);
+        setReviewsLoading(false);
       }
     };
     if (params.id) {
-      fetchProfile();
+      fetchProfileAndServices();
     }
   }, [params.id]);
 
@@ -120,23 +128,76 @@ export default function ShopDetailPage() {
       {/* Services List */}
       <div className="p-4">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Services</h2>
-        <div className="flex flex-col gap-3">
-          {services.map(service => (
-            <div key={service.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                <p className="text-sm text-gray-500">{service.duration}</p>
-                <p className="text-primary font-bold mt-1">KES {service.price}</p>
+        {services.length === 0 ? (
+          <div className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm text-center">
+            <span className="material-symbols-outlined text-4xl text-gray-300 mb-2 block">content_cut</span>
+            <p className="text-gray-500 font-medium">No services available yet.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {services.map(service => (
+              <div key={service._id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{service.name}</h3>
+                  <p className="text-sm text-gray-500">{service.duration}</p>
+                  <p className="text-primary font-bold mt-1">KES {service.price}</p>
+                </div>
+                <button 
+                  onClick={() => handleBook(service)}
+                  className="bg-primary text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors active:scale-95"
+                >
+                  Book
+                </button>
               </div>
-              <button 
-                onClick={() => handleBook(service)}
-                className="bg-primary text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors active:scale-95"
-              >
-                Book
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Reviews Section */}
+      <div className="p-4 mt-2 mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-gray-900">Reviews ({profile.reviewCount || profile.user?.reviewCount || 0})</h2>
         </div>
+        {reviewsLoading ? (
+          <div className="text-center py-4 text-gray-500">Loading reviews...</div>
+        ) : reviews.length === 0 ? (
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-center">
+            <span className="material-symbols-outlined text-4xl text-gray-300 mb-2 block">star</span>
+            <p className="text-gray-500 font-medium">No reviews yet.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {reviews.map(review => (
+              <div key={review._id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                      {review.client?.profileImage ? (
+                        <img src={review.client.profileImage} alt={review.client.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold">
+                          {review.client?.name?.charAt(0) || 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">{review.client?.name || 'User'}</p>
+                      <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-lg">
+                    <span className="material-symbols-outlined text-yellow-500 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <span className="font-bold text-xs ml-1 text-yellow-700">{review.rating}</span>
+                  </div>
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-gray-600 mt-2">{review.comment}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {isBookingModalOpen && selectedService && (

@@ -1,10 +1,21 @@
 import { Router } from 'express';
 import { BarberProfile } from '../models/BarberProfile';
 import { User } from '../models/User';
+import { Service } from '../models/Service';
 import { requireAuth } from '../middlewares/requireAuth';
 import rateLimit from 'express-rate-limit';
+import { Shop } from '../models/Shop';
+import { Invite } from '../models/Invite';
+import { Review } from '../models/Review';
 
 const router = Router();
+
+const FREE_TIER_BARBER_LIMIT = 3;
+const PREMIUM_TIER_BARBER_LIMIT = 10;
+
+const getBarberLimit = (tier: string) => {
+  return tier === 'premium' ? PREMIUM_TIER_BARBER_LIMIT : FREE_TIER_BARBER_LIMIT;
+};
 
 // POST /api/barbers/seed - Seed dummy barbers
 router.post('/seed', requireAuth, async (req, res) => {
@@ -186,15 +197,33 @@ router.post('/me/join-shop', requireAuth, joinShopLimiter, async (req, res) => {
       return res.status(400).json({ error: 'You are already linked to a shop. Contact support or leave your current shop first to switch.' });
     }
 
-    // Must import Shop model. Let's do it inline to avoid messing with top imports if it's not there,
-    // wait, I can just require it or better, I will just add the import at the top later. 
-    // I will use mongoose.model('Shop') for now to be safe.
-    const mongoose = require('mongoose');
-    const Shop = mongoose.model('Shop');
+    let shop;
+    
+    // First, check the new Invite model
+    const invite = await Invite.findOne({ code: inviteCode.toUpperCase(), status: 'pending' });
+    if (invite) {
+      shop = await Shop.findById(invite.shopId);
+      if (!shop) return res.status(404).json({ error: 'Associated shop not found.' });
+    } else {
+      // Fallback to legacy Shop.inviteCode
+      shop = await Shop.findOne({ inviteCode: inviteCode.toUpperCase() });
+      if (!shop) {
+        return res.status(404).json({ error: 'Invalid invite code.' });
+      }
+    }
 
-    const shop = await Shop.findOne({ inviteCode: inviteCode.toUpperCase() });
-    if (!shop) {
-      return res.status(404).json({ error: 'Invalid invite code.' });
+    // Check capacity before linking
+    const limit = getBarberLimit(shop.subscriptionTier || 'free');
+    if (shop.barbers.length >= limit) {
+      return res.status(400).json({ error: 'This shop has reached its barber limit.' });
+    }
+
+    // Only if capacity check passes: mark invite as accepted
+    if (invite) {
+      invite.status = 'accepted';
+      invite.acceptedBy = userId as any;
+      invite.acceptedAt = new Date();
+      await invite.save();
     }
 
     profile.shopId = shop._id;
@@ -211,6 +240,71 @@ router.post('/me/join-shop', requireAuth, joinShopLimiter, async (req, res) => {
   } catch (error: any) {
     console.error('Error joining shop:', error);
     return res.status(500).json({ error: 'Failed to join shop' });
+  }
+});
+
+router.get('/:id/services', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    let userId = id;
+    const profile = await BarberProfile.findOne({ $or: [{ _id: id }, { user: id }] });
+    if (profile) {
+      userId = profile.user.toString();
+    }
+
+    const services = await Service.find({ barber: userId, isActive: true }).sort({ createdAt: -1 });
+    return res.json({
+      success: true,
+      data: services
+    });
+  } catch (error: any) {
+    console.error('Error fetching barber services:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch services',
+      error: error.message
+    });
+  }
+});
+
+router.get('/:id/reviews', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let userId = id;
+    const profile = await BarberProfile.findOne({ $or: [{ _id: id }, { user: id }] });
+    if (profile) {
+      userId = profile.user.toString();
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const reviews = await Review.find({ barber: userId })
+      .populate('client', 'name profileImage')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+      
+    const total = await Review.countDocuments({ barber: userId });
+
+    return res.json({
+      success: true,
+      data: reviews,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error: any) {
+    console.error('Error fetching reviews:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch reviews',
+      error: error.message
+    });
   }
 });
 
@@ -253,12 +347,14 @@ router.put('/me/settings', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Barber profile not found' });
     }
 
-    const { bio, specialties, workingHours, payoutMethod, priceRange } = req.body;
+    const { bio, specialties, workingHours, payoutMethod, priceRange, area, portfolioImages } = req.body;
 
     if (bio !== undefined) profile.bio = bio;
     if (specialties !== undefined) profile.specialties = specialties;
     if (workingHours !== undefined) profile.workingHours = workingHours;
     if (priceRange !== undefined) profile.priceRange = priceRange;
+    if (area !== undefined) profile.area = area;
+    if (portfolioImages !== undefined) profile.portfolioImages = portfolioImages;
 
     // If payoutMethod changes, mark it as unverified
     if (payoutMethod !== undefined && profile.payoutMethod !== payoutMethod) {

@@ -15,6 +15,7 @@ interface Booking {
   date: string;
   timeSlot: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  reviewLeft?: boolean;
   barber: {
     name: string;
     profileImage?: string;
@@ -210,11 +211,16 @@ export default function ClientDashboard() {
                         </div>
                       </div>
                     </div>
-                    {booking.status === 'completed' && (
+                    {booking.status === 'completed' && !booking.reviewLeft && (
                        <div className="border-t border-border pt-3 mt-1">
-                        <Button className="w-full rounded-xl" size="lg">
+                        <Button className="w-full rounded-xl" size="lg" onClick={(e) => { e.stopPropagation(); router.push(`/client/bookings/${booking._id}/review`); }}>
                           Leave a Review
                         </Button>
+                      </div>
+                    )}
+                    {booking.status === 'completed' && booking.reviewLeft && (
+                       <div className="border-t border-border pt-3 mt-1 text-center text-sm font-semibold text-gray-500">
+                        Review submitted
                       </div>
                     )}
                   </div>

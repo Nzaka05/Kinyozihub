@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { Booking } from "../models/Booking";
+import { User } from "../models/User";
+import { Notification } from "../models/Notification";
+import { BarberProfile } from "../models/BarberProfile";
+import { BookingStatus } from "@kinyozihub/types";
 
 export const bookingsRouter = Router();
 
@@ -302,9 +306,167 @@ bookingsRouter.get("/:id", async (req, res) => {
       return res.status(403).json({ error: "Forbidden: You do not have access to this booking" });
     }
 
-    res.json({ success: true, data: booking });
+    // Fetch BarberProfile to get area
+    const barberProfile = await BarberProfile.findOne({ user: barberId });
+    
+    const bookingData = booking.toObject();
+    if (bookingData.barber && typeof bookingData.barber === 'object') {
+      (bookingData.barber as any).area = barberProfile?.area || undefined;
+    }
+
+    res.json({ success: true, data: bookingData });
   } catch (error) {
     console.error("Failed to fetch booking:", error);
     res.status(500).json({ error: "Failed to fetch booking" });
+  }
+});
+
+// PATCH /:id/propose-reschedule — either party proposes a new date/time
+bookingsRouter.patch("/:id/propose-reschedule", async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    const clientId = booking.client.toString();
+    const barberId = booking.barber.toString();
+
+    if (clientId !== userId && barberId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    if (booking.status !== BookingStatus.CONFIRMED) {
+      return res.status(400).json({ error: "Can only reschedule confirmed bookings" });
+    }
+
+    const { proposedDate, proposedTimeSlot, proposedMessage } = req.body;
+    if (!proposedDate || !proposedTimeSlot) {
+      return res.status(400).json({ error: "proposedDate and proposedTimeSlot are required" });
+    }
+
+    const callerRole = (userId === clientId) ? "client" : "barber";
+
+    booking.proposedDate = new Date(proposedDate);
+    booking.proposedTimeSlot = proposedTimeSlot;
+    booking.proposedBy = callerRole as any;
+    booking.proposedMessage = proposedMessage || undefined;
+    booking.rescheduleStatus = "pending" as any;
+
+    await booking.save();
+
+    // Notify the other party
+    try {
+      const caller = await User.findById(userId);
+      const recipientId = callerRole === "client" ? barberId : clientId;
+
+      await Notification.create({
+        userId: recipientId,
+        type: "booking",
+        title: "Reschedule Proposal",
+        message: `${caller?.name || "Someone"} proposed a new time for your ${booking.serviceName} appointment.`,
+        relatedId: booking._id
+      });
+    } catch (notifError) {
+      console.error("Failed to send notification for reschedule proposal:", notifError);
+      // Do not throw, allow the request to succeed
+    }
+
+    const updated = await Booking.findById(booking._id)
+      .populate("client", "name profileImage")
+      .populate("barber", "name profileImage rating totalReviews");
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error("Failed to propose reschedule:", error);
+    res.status(500).json({ error: "Failed to propose reschedule" });
+  }
+});
+
+// PATCH /:id/respond-reschedule — the OTHER party accepts or rejects
+bookingsRouter.patch("/:id/respond-reschedule", async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    const clientId = booking.client.toString();
+    const barberId = booking.barber.toString();
+
+    if (clientId !== userId && barberId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    if (booking.rescheduleStatus !== "pending") {
+      return res.status(400).json({ error: "No pending reschedule proposal" });
+    }
+
+    const callerRole = (userId === clientId) ? "client" : "barber";
+    if (callerRole === booking.proposedBy) {
+      return res.status(400).json({ error: "Only the other party can respond to this proposal" });
+    }
+
+    const { accept } = req.body;
+
+    if (accept) {
+      // Move the booking to the proposed date/time
+      const newDate = new Date(booking.proposedDate!);
+      newDate.setUTCHours(0, 0, 0, 0);
+
+      // Check for double-booking collision before updating
+      const conflict = await Booking.findOne({
+        _id: { $ne: booking._id },
+        barber: booking.barber,
+        date: newDate,
+        timeSlot: booking.proposedTimeSlot,
+        status: { $ne: BookingStatus.CANCELLED }
+      });
+
+      if (conflict) {
+        return res.status(400).json({ error: "This time slot is no longer available" });
+      }
+
+      booking.date = newDate;
+      booking.timeSlot = booking.proposedTimeSlot!;
+      booking.proposedDate = undefined;
+      booking.proposedTimeSlot = undefined;
+      booking.proposedBy = undefined;
+      booking.proposedMessage = undefined;
+      booking.rescheduleStatus = "accepted" as any;
+
+      await booking.save();
+
+      // Notify the proposer that their proposal was accepted
+      try {
+        const caller = await User.findById(userId);
+        const recipientId = callerRole === "client" ? barberId : clientId;
+
+        await Notification.create({
+          userId: recipientId,
+          type: "booking",
+          title: "Reschedule Accepted",
+          message: `${caller?.name || "Someone"} accepted the new time for your ${booking.serviceName} appointment.`,
+          relatedId: booking._id
+        });
+      } catch (notifError) {
+        console.error("Failed to send notification for reschedule accepted:", notifError);
+      }
+
+      const updated = await Booking.findById(booking._id)
+        .populate("client", "name profileImage")
+        .populate("barber", "name profileImage rating totalReviews");
+
+      return res.json({ success: true, accepted: true, data: updated });
+    } else {
+      // Reject = signal frontend to route to propose-time screen for a counter-proposal
+      // Don't clear the proposal yet — the counter-proposal call (propose-reschedule) will overwrite it
+      return res.json({ success: true, accepted: false, action: "counter-propose" });
+    }
+  } catch (error) {
+    console.error("Failed to respond to reschedule:", error);
+    res.status(500).json({ error: "Failed to respond to reschedule" });
   }
 });

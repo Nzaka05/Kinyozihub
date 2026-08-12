@@ -99,6 +99,11 @@ export interface Booking {
   cancelledBy: CancelledBy | null;
   notes?: string;
   reviewLeft: boolean;
+  proposedDate?: string;
+  proposedTimeSlot?: string;
+  proposedBy?: "client" | "barber";
+  proposedMessage?: string;
+  rescheduleStatus?: "none" | "pending" | "accepted";
 }
 
 // PRD §8.5

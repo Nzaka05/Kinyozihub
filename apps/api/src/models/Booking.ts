@@ -13,6 +13,11 @@ export interface BookingDocument extends Document {
   cancelledBy: CancelledBy | null;
   notes?: string;
   reviewLeft: boolean;
+  proposedDate?: Date;
+  proposedTimeSlot?: string;
+  proposedBy?: "client" | "barber";
+  proposedMessage?: string;
+  rescheduleStatus?: "none" | "pending" | "accepted";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,7 +33,12 @@ const bookingSchema = new Schema({
   status: { type: String, enum: Object.values(BookingStatus), required: true, default: BookingStatus.PENDING },
   cancelledBy: { type: String, enum: Object.values(CancelledBy), default: null },
   notes: { type: String },
-  reviewLeft: { type: Boolean, default: false }
+  reviewLeft: { type: Boolean, default: false },
+  proposedDate: { type: Date, required: false },
+  proposedTimeSlot: { type: String, required: false },
+  proposedBy: { type: String, enum: ["client", "barber"], required: false },
+  proposedMessage: { type: String, required: false, maxlength: 500 },
+  rescheduleStatus: { type: String, enum: ["none", "pending", "accepted"], default: "none" }
 }, {
   timestamps: true
 });

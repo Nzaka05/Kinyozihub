@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import ClientDrawer from '@/components/ClientDrawer';
+import FilterPanel, { FilterState } from '@/components/FilterPanel';
 
 interface Barber {
   _id: string;
@@ -17,6 +18,7 @@ interface Barber {
   nextAvailable: string;
   profileImage: string;
   isSponsored: boolean;
+  specialties?: string[];
 }
 
 export default function DiscoverPage() {
@@ -25,6 +27,14 @@ export default function DiscoverPage() {
   const [error, setError] = useState('');
   const { user, isLoading: authLoading } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    rating: null,
+    priceMin: 500,
+    priceMax: 3000,
+    specialties: [],
+    availableToday: false
+  });
 
   useEffect(() => {
     if (authLoading) return;
@@ -45,6 +55,37 @@ export default function DiscoverPage() {
     };
     fetchBarbers();
   }, [authLoading]);
+
+  // Client-side filtering
+  const filteredBarbers = barbers.filter(barber => {
+    // Rating
+    if (filters.rating !== null && barber.rating < filters.rating) return false;
+
+    // Price
+    const priceMatches = barber.priceRange.match(/\d+/g);
+    if (priceMatches && priceMatches.length >= 2) {
+      const minPrice = parseInt(priceMatches[0]);
+      const maxPrice = parseInt(priceMatches[1]);
+      // If barber's max is less than filter min, or barber's min is greater than filter max
+      if (maxPrice < filters.priceMin || minPrice > filters.priceMax) return false;
+    }
+
+    // Specialties
+    if (filters.specialties.length > 0) {
+      if (!barber.specialties || !filters.specialties.some(s => barber.specialties!.includes(s))) {
+        return false;
+      }
+    }
+
+    // Available today
+    if (filters.availableToday) {
+      if (!barber.nextAvailable.toLowerCase().includes('today') && !barber.nextAvailable.toLowerCase().includes('now')) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   return (
     <div className="flex flex-col min-h-screen pb-24">
@@ -79,19 +120,19 @@ export default function DiscoverPage() {
 
       {/* Filter Chips */}
       <section className="mt-4 overflow-x-auto no-scrollbar flex gap-2 px-4 whitespace-nowrap">
-        <button className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
+        <button onClick={() => setIsFilterPanelOpen(true)} className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
           <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
           Rating
         </button>
-        <button className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
+        <button onClick={() => setIsFilterPanelOpen(true)} className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
           <span className="material-symbols-outlined text-sm">payments</span>
           Price range
         </button>
-        <button className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
+        <button onClick={() => setIsFilterPanelOpen(true)} className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
           <span className="material-symbols-outlined text-sm">content_cut</span>
           Specialty
         </button>
-        <button className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
+        <button onClick={() => setIsFilterPanelOpen(true)} className="flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm font-semibold active:scale-95 text-gray-700">
           <span className="material-symbols-outlined text-sm">event_available</span>
           Available today
         </button>
@@ -108,10 +149,10 @@ export default function DiscoverPage() {
           <div className="flex justify-center p-8 text-gray-500">Loading barbers...</div>
         ) : error ? (
           <div className="p-4 bg-red-50 text-red-600 rounded-lg">{error}</div>
-        ) : barbers.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No barbers found in your area.</div>
+        ) : filteredBarbers.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No barbers found matching your criteria.</div>
         ) : (
-          barbers.map((barber) => (
+          filteredBarbers.map((barber) => (
             <Link key={barber._id} href={`/client/shop/${barber.user?._id || barber._id}`} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm flex flex-col group cursor-pointer active:scale-[0.98] transition-transform">
               <div className="relative h-48 w-full">
                 <img 
@@ -159,6 +200,12 @@ export default function DiscoverPage() {
       </section>
 
       <ClientDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+      <FilterPanel 
+        isOpen={isFilterPanelOpen} 
+        onClose={() => setIsFilterPanelOpen(false)} 
+        onApply={setFilters} 
+        initialFilters={filters} 
+      />
     </div>
   );
 }

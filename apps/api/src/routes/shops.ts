@@ -4,7 +4,15 @@ import { Shop } from "../models/Shop";
 import { BarberProfile } from "../models/BarberProfile";
 import { Booking } from "../models/Booking";
 import { User } from "../models/User";
+import { Invite } from "../models/Invite";
 export const shopsRouter = Router();
+
+const FREE_TIER_BARBER_LIMIT = 3;
+const PREMIUM_TIER_BARBER_LIMIT = 10;
+
+const getBarberLimit = (tier: string) => {
+  return tier === 'premium' ? PREMIUM_TIER_BARBER_LIMIT : FREE_TIER_BARBER_LIMIT;
+};
 
 shopsRouter.post("/seed", async (req, res) => {
   try {
@@ -278,6 +286,78 @@ shopsRouter.post("/me/invite-code", requireAuth, async (req, res) => {
   } catch (error) {
     console.error("Error generating invite code:", error);
     res.status(500).json({ error: "Failed to generate invite code" });
+  }
+});
+
+shopsRouter.get("/me/invites", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    const invites = await Invite.find({ shopId: shop._id }).sort({ createdAt: -1 });
+    
+    const limit = getBarberLimit(shop.subscriptionTier || 'free');
+    
+    return res.json({
+      success: true,
+      data: {
+        invites,
+        barberCount: shop.barbers.length,
+        barberLimit: limit
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching invites:", error);
+    res.status(500).json({ error: "Failed to fetch invites" });
+  }
+});
+
+shopsRouter.post("/me/invites", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    const limit = getBarberLimit(shop.subscriptionTier || 'free');
+    if (shop.barbers.length >= limit) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Barber slot limit reached for your current plan" 
+      });
+    }
+
+    let newCode = '';
+    let success = false;
+    for (let i = 0; i < 3; i++) {
+      newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      try {
+        const invite = await Invite.create({
+          shopId: shop._id,
+          code: newCode,
+          status: 'pending',
+          invitedBy: userId
+        });
+        success = true;
+        break;
+      } catch (err: any) {
+        if (err.code === 11000) continue;
+        throw err;
+      }
+    }
+
+    if (!success) {
+      return res.status(500).json({ success: false, message: "Failed to generate invite code. Please try again." });
+    }
+
+    return res.json({ success: true, inviteCode: newCode });
+  } catch (error) {
+    console.error("Error creating invite:", error);
+    res.status(500).json({ error: "Failed to create invite" });
   }
 });
 

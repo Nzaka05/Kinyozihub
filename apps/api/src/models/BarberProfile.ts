@@ -1,5 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+export interface IWorkingHour {
+  dayOfWeek: number;
+  isOpen: boolean;
+  openTime?: string;
+  closeTime?: string;
+}
+
 export interface IBarberProfile extends Document {
   user: mongoose.Types.ObjectId;
   shopId?: mongoose.Types.ObjectId;
@@ -17,9 +24,10 @@ export interface IBarberProfile extends Document {
   portfolioImages: string[];
   bio?: string;
   specialties: string[];
-  workingHours: any[];
+  workingHours: IWorkingHour[];
   payoutMethod?: string;
   payoutMethodVerified: boolean;
+  area?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,7 +59,8 @@ const barberProfileSchema = new Schema<IBarberProfile>(
     specialties: { type: [String], default: [] },
     workingHours: { type: [workingHourSchema], default: [] },
     payoutMethod: { type: String, required: false },
-    payoutMethodVerified: { type: Boolean, default: false }
+    payoutMethodVerified: { type: Boolean, default: false },
+    area: { type: String, required: false }
   },
   {
     timestamps: true,
