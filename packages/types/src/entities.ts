@@ -56,6 +56,17 @@ export interface WorkingHour {
 export interface BarberProfile {
   _id: string;
   userId: string; // ref Users
+  user?: {
+    _id: string;
+    name?: string;
+    phone?: string;
+    role?: string;
+    profileImage?: string;
+    rating?: number;
+    reviewCount?: number;
+    shopName?: string;
+    isVerified?: boolean;
+  };
   bio?: string;
   tagline?: string;
   location: GeoPoint;

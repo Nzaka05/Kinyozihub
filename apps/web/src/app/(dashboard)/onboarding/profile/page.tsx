@@ -17,7 +17,7 @@ export default function ProfileOnboardingPage() {
 
   // Step 1 State
   const [phone, setPhone] = useState(user?.phone?.startsWith('google_') ? '' : (user?.phone || ''));
-  const [role, setRole] = useState(user?.role || "client");
+  const [role, setRole] = useState<UserRole>((user?.role as UserRole) || UserRole.CLIENT);
   const [name, setName] = useState(user?.name === GOOGLE_USER_FALLBACK_NAME ? "" : (user?.name || ""));
   const needsName = user?.name === GOOGLE_USER_FALLBACK_NAME;
 
@@ -67,9 +67,9 @@ export default function ProfileOnboardingPage() {
 
       setIsLoading(false);
       
-      if (role === 'client') {
+      if (role === UserRole.CLIENT) {
         window.location.href = '/client/dashboard';
-      } else if (role === 'shop_owner') {
+      } else if (role === UserRole.SHOP_OWNER) {
         window.location.href = '/shop/dashboard';
       } else {
         setCurrentStep(2); // Barber proceeds to step 2
@@ -153,12 +153,12 @@ export default function ProfileOnboardingPage() {
 
   const handleSkip = () => {
     if (currentStep === 1) {
-      const defaultRole = user?.role || "client";
-      if (defaultRole === 'client') {
+      const defaultRole = (user?.role as UserRole) || UserRole.CLIENT;
+      if (defaultRole === UserRole.CLIENT) {
         window.location.href = '/client/dashboard';
-      } else if (defaultRole === 'shop_owner') {
+      } else if (defaultRole === UserRole.SHOP_OWNER) {
         window.location.href = '/shop/dashboard';
-      } else if (defaultRole === 'barber') {
+      } else if (defaultRole === UserRole.BARBER) {
         window.location.href = '/barber/dashboard';
       } else {
         window.location.href = '/login';
@@ -214,33 +214,33 @@ export default function ProfileOnboardingPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <RoleCard
                   name="role"
-                  value="client"
+                  value={UserRole.CLIENT}
                   title="Client"
                   description="Book appointments with top barbers"
                   icon={<span className="material-symbols-outlined">content_cut</span>}
-                  selected={role === 'client'}
+                  selected={role === UserRole.CLIENT}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  onClick={() => setRole("client")}
+                  onClick={() => setRole(UserRole.CLIENT)}
                 />
                 <RoleCard
                   name="role"
-                  value="barber"
+                  value={UserRole.BARBER}
                   title="Barber"
                   description="Manage your bookings and clients"
                   icon={<span className="material-symbols-outlined">face</span>}
-                  selected={role === 'barber'}
+                  selected={role === UserRole.BARBER}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  onClick={() => setRole("barber")}
+                  onClick={() => setRole(UserRole.BARBER)}
                 />
                 <RoleCard
                   name="role"
-                  value="shop_owner"
+                  value={UserRole.SHOP_OWNER}
                   title="Shop Owner"
                   description="Manage your shop and staff"
                   icon={<span className="material-symbols-outlined">storefront</span>}
-                  selected={role === 'shop_owner'}
+                  selected={role === UserRole.SHOP_OWNER}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  onClick={() => setRole("shop_owner")}
+                  onClick={() => setRole(UserRole.SHOP_OWNER)}
                 />
               </div>
             </div>

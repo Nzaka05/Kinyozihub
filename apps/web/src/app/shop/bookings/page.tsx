@@ -13,6 +13,7 @@ type Booking = {
     _id: string;
     name: string;
     profileImage?: string;
+    phone?: string;
   };
   barber?: {
     _id: string;

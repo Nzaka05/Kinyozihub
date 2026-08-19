@@ -9,6 +9,13 @@ import FilterPanel, { FilterState } from '@/components/FilterPanel';
 
 interface Barber {
   _id: string;
+  user?: {
+    _id: string;
+    name?: string;
+    phone?: string;
+    role?: string;
+    profileImage?: string;
+  };
   shopName: string;
   isVerified: boolean;
   rating: number;
