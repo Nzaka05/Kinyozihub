@@ -20,8 +20,19 @@ if (!process.env.GOOGLE_CLIENT_ID) {
 const app = express();
 const port = process.env.PORT || 3001;
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map(o => o.trim());
+
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (server-to-server, curl, mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin ${origin} not allowed`));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
