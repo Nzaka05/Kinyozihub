@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import ServiceManager from "@/components/ServiceManager";
 import BlockTimeModal from "@/components/BlockTimeModal";
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -208,9 +207,6 @@ export default function BarberSettingsPage() {
                 </div>
               </div>
             </section>
-
-            {/* SERVICES */}
-            <ServiceManager />
 
             {/* WORKING HOURS */}
             <section className="bg-white border border-border rounded-xl shadow-sm p-8">

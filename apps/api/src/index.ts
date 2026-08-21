@@ -46,6 +46,7 @@ import { conversationsRouter } from "./routes/conversations";
 import { servicesRouter } from "./routes/services";
 import { reviewsRouter } from "./routes/reviews";
 import blockedTimeRouter from "./routes/blocked-time";
+import { uploadsRouter } from "./routes/uploads";
 
 app.use("/api/auth", authRouter);
 app.use("/api/bookings", bookingsRouter);
@@ -56,6 +57,7 @@ app.use("/api/conversations", conversationsRouter);
 app.use("/api/services", servicesRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/blocked-time", blockedTimeRouter);
+app.use("/api/uploads", uploadsRouter);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

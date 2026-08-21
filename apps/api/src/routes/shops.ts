@@ -5,6 +5,7 @@ import { BarberProfile } from "../models/BarberProfile";
 import { Booking } from "../models/Booking";
 import { User } from "../models/User";
 import { Invite } from "../models/Invite";
+import { Service } from "../models/Service";
 export const shopsRouter = Router();
 
 const FREE_TIER_BARBER_LIMIT = 3;
@@ -393,3 +394,168 @@ shopsRouter.put("/me/settings", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to update shop settings" });
   }
 });
+
+shopsRouter.get("/me/staff-services", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const user = await User.findById(userId);
+    if (user?.role !== "shop_owner") {
+      return res.status(403).json({ error: "Forbidden: Not a shop owner" });
+    }
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const barberProfiles = await BarberProfile.find({ shopId: shop._id }).populate("user", "name profileImage");
+
+    const result = await Promise.all(
+      barberProfiles.map(async (bp: any) => {
+        const staffUserId = bp.user?._id || bp.user;
+        const services = staffUserId ? await Service.find({ barber: staffUserId }).sort({ createdAt: -1 }) : [];
+        return {
+          barberId: bp._id,
+          barberName: bp.user?.name || "Unknown Barber",
+          barberProfileImage: bp.user?.profileImage || null,
+          services
+        };
+      })
+    );
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error fetching staff services:", error);
+    res.status(500).json({ error: "Failed to fetch staff services" });
+  }
+});
+
+shopsRouter.get("/me/staff-portfolios", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const user = await User.findById(userId);
+    if (user?.role !== "shop_owner") {
+      return res.status(403).json({ error: "Forbidden: Not a shop owner" });
+    }
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const barberProfiles = await BarberProfile.find({ shopId: shop._id }).populate("user", "name profileImage");
+
+    const result = barberProfiles.map((bp: any) => ({
+      barberId: bp._id,
+      barberName: bp.user?.name || "Unknown Barber",
+      barberProfileImage: bp.user?.profileImage || null,
+      portfolioImages: bp.portfolioImages || []
+    }));
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error fetching staff portfolios:", error);
+    res.status(500).json({ error: "Failed to fetch staff portfolios" });
+  }
+});
+
+// ── Shop Owner Earnings ──────────────────────────────────────────────
+shopsRouter.get("/me/earnings", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const user = await User.findById(userId);
+    if (user?.role !== "shop_owner") {
+      return res.status(403).json({ error: "Forbidden: Not a shop owner" });
+    }
+
+    const shop = await Shop.findOne({ ownerId: userId });
+    if (!shop) {
+      return res.json({
+        success: true,
+        data: { todayShopRevenue: 0, weekShopGross: 0, estimatedNextPayout: 0, staffBreakdown: [] }
+      });
+    }
+
+    const barberProfiles = await BarberProfile.find({ shopId: shop._id }).populate("user", "name profileImage");
+
+    // Date boundaries (explicit UTC midnight)
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
+
+    // Current week: Monday 00:00:00 UTC to Sunday 23:59:59 UTC
+    const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const thisWeekStart = new Date(todayStart);
+    thisWeekStart.setUTCDate(thisWeekStart.getUTCDate() + mondayOffset);
+    const thisWeekEnd = new Date(thisWeekStart);
+    thisWeekEnd.setUTCDate(thisWeekEnd.getUTCDate() + 7);
+
+    let todayShopRevenue = 0;
+    let weekShopGross = 0;
+    let allTimeShopCommission = 0;
+    const staffBreakdown: Array<{
+      barberName: string;
+      barberProfileImage: string | null;
+      weekGross: number;
+      weekCommission: number;
+    }> = [];
+
+    for (const bp of barberProfiles) {
+      const staffUserId = (bp as any).user?._id || (bp as any).user;
+      if (!staffUserId) continue;
+
+      const commissionRate = typeof bp.commissionRate === "number" ? bp.commissionRate : 0;
+      const completedBookings = await Booking.find({ barber: staffUserId, status: "completed" });
+
+      let staffWeekGross = 0;
+      let staffWeekCommission = 0;
+
+      for (const b of completedBookings) {
+        const bookingDate = new Date(b.date);
+        const price = b.price || 0;
+        const commission = Math.round(price * commissionRate);
+
+        allTimeShopCommission += commission;
+
+        if (bookingDate >= todayStart && bookingDate < todayEnd) {
+          todayShopRevenue += commission;
+        }
+        if (bookingDate >= thisWeekStart && bookingDate < thisWeekEnd) {
+          weekShopGross += price;
+          staffWeekGross += price;
+          staffWeekCommission += commission;
+        }
+      }
+
+      staffBreakdown.push({
+        barberName: (bp as any).user?.name || "Unknown Barber",
+        barberProfileImage: (bp as any).user?.profileImage || null,
+        weekGross: staffWeekGross,
+        weekCommission: staffWeekCommission
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        todayShopRevenue,
+        weekShopGross,
+        estimatedNextPayout: allTimeShopCommission,
+        staffBreakdown
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching shop earnings:", error);
+    res.status(500).json({ error: "Failed to fetch shop earnings" });
+  }
+});
+

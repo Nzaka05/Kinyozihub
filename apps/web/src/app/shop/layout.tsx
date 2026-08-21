@@ -56,11 +56,11 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">event_available</span>
             <span>Bookings</span>
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group">
+          <Link href="/shop/services" className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-bold transition-all duration-200 ease-in-out active:scale-95 group ${pathname === '/shop/services' ? 'bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors'}`}>
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">content_cut</span>
             <span>Services</span>
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group">
+          <Link href="/shop/portfolio" className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-bold transition-all duration-200 ease-in-out active:scale-95 group ${pathname === '/shop/portfolio' ? 'bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors'}`}>
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">photo_library</span>
             <span>Portfolio</span>
           </Link>
@@ -68,7 +68,7 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">chat</span>
             <span>Messages</span>
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors rounded-lg transition-all duration-200 ease-in-out active:scale-95 group">
+          <Link href="/shop/earnings" className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-bold transition-all duration-200 ease-in-out active:scale-95 group ${pathname === '/shop/earnings' ? 'bg-primary-container dark:bg-primary text-on-primary-container dark:text-on-primary' : 'text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors'}`}>
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">payments</span>
             <span>Earnings</span>
           </Link>

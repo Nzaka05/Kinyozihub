@@ -21,8 +21,11 @@ export default function ServiceManager() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('45 min');
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     fetchServices();
@@ -41,22 +44,56 @@ export default function ServiceManager() {
     }
   };
 
+  const presetDurations = ['15 min', '30 min', '45 min', '60 min', '90 min'];
+
   const openAddModal = () => {
     setEditingService(null);
     setName('');
     setPrice('');
     setDuration('45 min');
+    setIsCustomDuration(false);
+    setCustomMinutes('');
     setIsActive(true);
+    setShowDeleteConfirm(false);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (service: Service) => {
+  const openEditModal = (service: Service, openDeleteConfirm = false) => {
     setEditingService(service);
     setName(service.name);
     setPrice(service.price.toString());
-    setDuration(service.duration);
+    const isPreset = presetDurations.includes(service.duration);
+    if (isPreset) {
+      setDuration(service.duration);
+      setIsCustomDuration(false);
+      setCustomMinutes('');
+    } else {
+      setDuration(service.duration);
+      setIsCustomDuration(true);
+      setCustomMinutes(service.duration.replace(/\D/g, ''));
+    }
     setIsActive(service.isActive);
+    setShowDeleteConfirm(openDeleteConfirm);
     setIsModalOpen(true);
+  };
+
+  const handleSelectDuration = (val: string) => {
+    if (val === 'Custom') {
+      setIsCustomDuration(true);
+      if (customMinutes) {
+        setDuration(`${customMinutes} min`);
+      }
+    } else {
+      setIsCustomDuration(false);
+      setDuration(val);
+    }
+  };
+
+  const handleCustomMinutesChange = (val: string) => {
+    setCustomMinutes(val);
+    if (val) {
+      setDuration(`${val} min`);
+    }
   };
 
   const handleSave = async () => {
@@ -74,7 +111,8 @@ export default function ServiceManager() {
         await api.post('/services', {
           name,
           price: Number(price),
-          duration
+          duration,
+          isActive
         });
       }
       setIsModalOpen(false);
@@ -87,9 +125,10 @@ export default function ServiceManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
     try {
       await api.delete(`/services/${id}`);
+      setIsModalOpen(false);
+      setShowDeleteConfirm(false);
       fetchServices();
     } catch (err) {
       console.error("Failed to delete service", err);
@@ -136,14 +175,14 @@ export default function ServiceManager() {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => openEditModal(service)}
+                  onClick={() => openEditModal(service, false)}
                   className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                   title="Edit"
                 >
                   <span className="material-symbols-outlined text-[20px]">edit</span>
                 </button>
                 <button 
-                  onClick={() => handleDelete(service._id)}
+                  onClick={() => openEditModal(service, true)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Delete"
                 >
@@ -155,96 +194,172 @@ export default function ServiceManager() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
+      {/* Add/Edit Bottom Sheet Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-xl font-semibold text-gray-900">
+        <>
+          <div 
+            className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm transition-opacity" 
+            onClick={() => setIsModalOpen(false)}
+          ></div>
+          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-[70] bg-surface rounded-t-[16px] shadow-2xl flex flex-col max-h-[85vh] transform transition-transform">
+            {/* Drag Handle */}
+            <div className="flex justify-center pt-xs pb-xs">
+              <div className="w-10 h-1 bg-outline-variant rounded-full"></div>
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-container-margin pb-md pt-xs border-b border-outline-variant">
+              <h2 className="font-headline-md text-headline-md font-bold text-on-surface">
                 {editingService ? 'Edit Service' : 'Add Service'}
               </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500"
+                className="p-xs text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            
-            <div className="p-6 overflow-y-auto space-y-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-gray-700">Service Name</label>
+
+            {/* Form Body */}
+            <div className="flex-1 overflow-y-auto px-container-margin py-lg space-y-lg custom-scrollbar">
+              {/* Service Name */}
+              <div className="space-y-xs">
+                <label className="block font-label-bold text-label-bold text-on-surface">Service Name</label>
                 <input 
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Signature Fade"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:outline-none bg-gray-50" 
+                  className="w-full h-12 px-md border border-outline-variant rounded-xl bg-surface-container-low focus:ring-2 focus:ring-brand-coral focus:border-brand-coral outline-none transition-all placeholder:text-on-surface-variant/50 font-body-md"
                 />
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label className="text-sm font-semibold text-gray-700">Price (KES)</label>
+              {/* Price */}
+              <div className="space-y-xs">
+                <label className="block font-label-bold text-label-bold text-on-surface">Price</label>
+                <div className="relative flex items-center h-12 bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-coral focus-within:border-brand-coral">
+                  <span className="px-md font-label-bold text-on-surface-variant/70 border-r border-outline-variant select-none">KES</span>
                   <input 
                     type="number" 
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    placeholder="e.g. 1000"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:outline-none bg-gray-50" 
+                    placeholder="1200"
+                    className="w-full h-full px-md bg-transparent outline-none font-label-bold text-body-lg placeholder:text-on-surface-variant/50"
                   />
-                </div>
-                
-                <div className="flex flex-col gap-1.5 flex-1">
-                  <label className="text-sm font-semibold text-gray-700">Duration</label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary focus:outline-none bg-gray-50 appearance-none"
-                  >
-                    <option value="15 min">15 min</option>
-                    <option value="30 min">30 min</option>
-                    <option value="45 min">45 min</option>
-                    <option value="60 min">60 min</option>
-                    <option value="90 min">90 min</option>
-                    <option value="120 min">120 min</option>
-                  </select>
                 </div>
               </div>
 
-              {editingService && (
-                <div className="flex items-center gap-3 pt-2">
-                  <input 
+              {/* Duration */}
+              <div className="space-y-xs">
+                <label className="block font-label-bold text-label-bold text-on-surface">Duration</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['15 min', '30 min', '45 min', '60 min', '90 min', 'Custom'].map((item) => {
+                    const isSelected = item === 'Custom' ? isCustomDuration : (!isCustomDuration && duration === item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => handleSelectDuration(item)}
+                        className={`duration-chip px-2 py-3 rounded-xl border border-outline-variant text-body-sm font-label-bold transition-colors ${
+                          isSelected
+                            ? 'bg-on-surface text-white'
+                            : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    );
+                  })}
+                </div>
+                {isCustomDuration && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={customMinutes}
+                      onChange={(e) => handleCustomMinutesChange(e.target.value)}
+                      placeholder="e.g. 75"
+                      className="w-28 h-10 px-3 border border-outline-variant rounded-lg bg-surface-container-low text-sm font-label-bold outline-none focus:ring-2 focus:ring-brand-coral"
+                    />
+                    <span className="text-sm font-label-bold text-on-surface-variant">minutes</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Active Status Toggle */}
+              <div className="flex items-start justify-between gap-4 py-2">
+                <div className="flex-1">
+                  <label htmlFor="serviceActiveToggle" className="font-label-bold text-label-bold text-on-surface block mb-1">
+                    Active Status
+                  </label>
+                  <p className="text-body-sm text-on-surface-variant leading-tight">
+                    Inactive services are hidden from your profile but keep their booking history.
+                  </p>
+                </div>
+                <div className="relative inline-flex items-center cursor-pointer mt-1">
+                  <input
+                    id="serviceActiveToggle"
                     type="checkbox"
-                    id="isActive"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary" 
+                    className="sr-only peer"
                   />
-                  <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-                    Service is active and bookable
-                  </label>
+                  <div className="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-coral"></div>
+                </div>
+              </div>
+
+              {/* Primary Action Button */}
+              <div className="pt-2">
+                <button 
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving || !name || !price || !duration}
+                  className="w-full bg-brand-coral text-white font-label-bold h-[52px] rounded-xl shadow-lg hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? 'Saving...' : 'Save Service'}
+                </button>
+              </div>
+
+              {/* Edit Mode - Delete Link & Inline Confirmation */}
+              {editingService && (
+                <div className="pt-1">
+                  {!showDeleteConfirm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full text-error font-label-bold py-3 hover:underline text-center text-sm"
+                    >
+                      Delete Service
+                    </button>
+                  ) : (
+                    <div className="p-md bg-error-container/30 border border-error/20 rounded-xl space-y-2 animate-in fade-in">
+                      <p className="text-body-sm text-on-error-container font-semibold">Delete this service?</p>
+                      <p className="text-body-sm text-on-surface-variant">Existing bookings for it won&apos;t be affected.</p>
+                      <div className="flex gap-3 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setShowDeleteConfirm(false)}
+                          className="flex-1 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface font-label-bold text-body-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(editingService._id)}
+                          className="flex-1 py-2.5 rounded-lg bg-error text-on-error font-label-bold text-body-sm hover:opacity-90"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
 
-            <div className="p-4 border-t border-gray-100 flex gap-3 bg-gray-50/50">
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={isSaving || !name || !price || !duration}
-                className="flex-1 px-4 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? 'Saving...' : 'Save Service'}
-              </button>
+              {/* Bottom spacing */}
+              <div className="h-4"></div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </section>
   );

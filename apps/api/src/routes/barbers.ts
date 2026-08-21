@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { BarberProfile } from '../models/BarberProfile';
 import { User } from '../models/User';
 import { Service } from '../models/Service';
+import { Booking } from '../models/Booking';
 import { requireAuth } from '../middlewares/requireAuth';
 import rateLimit from 'express-rate-limit';
 import { Shop } from '../models/Shop';
@@ -355,7 +356,9 @@ router.put('/me/settings', requireAuth, async (req, res) => {
     if (workingHours !== undefined) profile.workingHours = workingHours;
     if (priceRange !== undefined) profile.priceRange = priceRange;
     if (area !== undefined) profile.area = area;
-    if (portfolioImages !== undefined) profile.portfolioImages = portfolioImages;
+    if (portfolioImages !== undefined) {
+      profile.portfolioImages = Array.isArray(portfolioImages) ? portfolioImages.slice(0, 6) : [];
+    }
 
     // If payoutMethod changes, mark it as unverified
     if (payoutMethod !== undefined && profile.payoutMethod !== payoutMethod) {
@@ -369,6 +372,90 @@ router.put('/me/settings', requireAuth, async (req, res) => {
   } catch (error: any) {
     console.error('Error updating barber settings:', error);
     res.status(500).json({ error: 'Failed to update barber settings' });
+  }
+});
+
+// ── Barber Earnings ───────────────────────────────────────────────────
+router.get('/me/earnings', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await User.findById(userId);
+    if (user?.role !== 'barber') {
+      return res.status(403).json({ error: 'Forbidden: Not a barber' });
+    }
+
+    const profile = await BarberProfile.findOne({ user: userId });
+    if (!profile) {
+      return res.status(404).json({ error: 'Barber profile not found' });
+    }
+
+    const commissionRate = typeof profile.commissionRate === 'number' ? profile.commissionRate : 0;
+
+    const completedBookings = await Booking.find({ barber: userId, status: 'completed' });
+
+    // Date boundaries (explicit UTC midnight)
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
+
+    // Current week: Monday 00:00:00 UTC to Sunday 23:59:59 UTC
+    const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const thisWeekStart = new Date(todayStart);
+    thisWeekStart.setUTCDate(thisWeekStart.getUTCDate() + mondayOffset);
+    const thisWeekEnd = new Date(thisWeekStart);
+    thisWeekEnd.setUTCDate(thisWeekEnd.getUTCDate() + 7);
+
+    // Last week
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setUTCDate(lastWeekStart.getUTCDate() - 7);
+    const lastWeekEnd = new Date(thisWeekStart);
+
+    let todayGross = 0;
+    let weekGross = 0;
+    let lastWeekGross = 0;
+    let allTimeGross = 0;
+
+    for (const b of completedBookings) {
+      const bookingDate = new Date(b.date);
+      const price = b.price || 0;
+      allTimeGross += price;
+
+      if (bookingDate >= todayStart && bookingDate < todayEnd) {
+        todayGross += price;
+      }
+      if (bookingDate >= thisWeekStart && bookingDate < thisWeekEnd) {
+        weekGross += price;
+      }
+      if (bookingDate >= lastWeekStart && bookingDate < lastWeekEnd) {
+        lastWeekGross += price;
+      }
+    }
+
+    const computeNet = (gross: number) => Math.round(gross * (1 - commissionRate));
+
+    const growthPercent = lastWeekGross === 0
+      ? (weekGross > 0 ? 100 : 0)
+      : Math.round(((weekGross - lastWeekGross) / lastWeekGross) * 100);
+
+    res.json({
+      success: true,
+      data: {
+        today: { gross: todayGross, net: computeNet(todayGross) },
+        week: { gross: weekGross, net: computeNet(weekGross) },
+        allTime: { gross: allTimeGross, net: computeNet(allTimeGross) },
+        growthPercent,
+        completedBookingsCount: completedBookings.length,
+        commissionRate
+      }
+    });
+  } catch (error: any) {
+    console.error('Error fetching barber earnings:', error);
+    res.status(500).json({ error: 'Failed to fetch earnings' });
   }
 });
 

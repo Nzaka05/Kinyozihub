@@ -52,20 +52,20 @@ export default function BarberLayout({ children }: { children: React.ReactNode }
             <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === '/barber/bookings' ? "'FILL' 1" : "'FILL' 0" }}>event_available</span>
             <span>Bookings</span>
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">content_cut</span>
+          <Link href="/barber/services" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out active:scale-95 ${pathname === '/barber/services' ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}>
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === '/barber/services' ? "'FILL' 1" : "'FILL' 0" }}>content_cut</span>
             <span>Services</span>
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">photo_library</span>
+          <Link href="/barber/portfolio" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out active:scale-95 ${pathname === '/barber/portfolio' ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}>
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === '/barber/portfolio' ? "'FILL' 1" : "'FILL' 0" }}>photo_library</span>
             <span>Portfolio</span>
           </Link>
           <Link href="/barber/messages" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out active:scale-95 ${pathname === '/barber/messages' || pathname?.startsWith('/barber/messages/') ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}>
             <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === '/barber/messages' || pathname?.startsWith('/barber/messages/') ? "'FILL' 1" : "'FILL' 0" }}>chat</span>
             <span>Messages</span>
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors duration-200 ease-in-out active:scale-95">
-            <span className="material-symbols-outlined">payments</span>
+          <Link href="/barber/earnings" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out active:scale-95 ${pathname === '/barber/earnings' ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}>
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === '/barber/earnings' ? "'FILL' 1" : "'FILL' 0" }}>payments</span>
             <span>Earnings</span>
           </Link>
           <Link href="/barber/settings" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ease-in-out active:scale-95 ${pathname === '/barber/settings' ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-500 hover:bg-gray-100'}`}>
